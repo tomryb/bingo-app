@@ -1,0 +1,1 @@
+export type BoardSize = 3 | 4 | 5
