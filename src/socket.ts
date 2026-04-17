@@ -1,5 +1,5 @@
-import { io, type Socket } from 'socket.io-client'
+import { io, type Socket } from "socket.io-client";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3001'
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:3001";
 
-export const socket: Socket = io(SERVER_URL)
+export const socket: Socket = io(SERVER_URL);
