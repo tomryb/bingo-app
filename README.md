@@ -2,6 +2,12 @@
 
 Prosta multiplayerowa gra w **świąteczne (bożonarodzeniowe)** Bingo — gracze dołączają do pokoju i zaznaczają pola na własnych planszach. Serwer automatycznie wykrywa pierwsze BINGO i kończy rundę wszystkim. Pozostali dostają komunikaty o ruchach, ale ich kafelki nie zaznaczają się automatycznie.
 
+## Zagraj
+
+Otwórz [Świąteczne Bingo](https://holiday-bingo-app.netlify.app/), wpisz imię i nazwę pokoju. Pozostali gracze otwierają tę samą aplikację i wpisują dokładnie tę samą nazwę pokoju oraz własne, różne imiona. Przycisk „Kopiuj nazwę pokoju” ułatwia przekazanie nazwy rodzinie.
+
+Pokoje nie mają haseł ani kontroli dostępu — nazwa pokoju nie jest zabezpieczeniem. Odświeżenie strony lub utrata połączenia oznacza ponowne dołączenie i nową planszę. Restart backendu usuwa wszystkie pokoje.
+
 ## Funkcje
 
 - Indywidualne plansze z hasłami autora (`src/data/texts.ts`): obecnie **3x3**, a **4x4** i **5x5** po uzupełnieniu puli przez autora.
@@ -66,11 +72,11 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - `npm run verify:fix` — Biome z bezpiecznymi poprawkami, następnie typecheck frontendu i backendu. Niepowodzenie pierwszego kroku zatrzymuje drugi.
 - Wszystkie komendy Biome oraz pre-commit używają `--error-on-warnings`; pozostałe błędy i ostrzeżenia kończą kontrolę niepowodzeniem.
 - `npm run typecheck` — TypeScript: frontend, backend oraz testy `.mts` przez `tsconfig.tests.json`.
-- `npm test` — 25 testów jednostkowych/integracyjnych, kolejno frontend i backend; wymagają zależności obu pakietów. Bez uruchamiania przeglądarki.
-- `npm run test:frontend` — 10 testów jednostkowych frontendu w `tests/unit/`: sygnały i walidacja przydziału planszy. Nie są to testy interfejsu w przeglądarce.
-- `npm run test:backend` lub `npm test --prefix server` — 15 testów w `server/tests/`: losowanie, wspólne reguły/dane gry i integracja Socket.IO, w tym nieprawidłowe komunikaty, błędne/spóźnione ruchy, równoczesne BINGO i rozłączenia.
+- `npm test` — 27 testów jednostkowych/integracyjnych, kolejno frontend/narzędzia i backend; wymagają zależności obu pakietów. Bez uruchamiania przeglądarki.
+- `npm run test:frontend` — 11 testów jednostkowych w `tests/unit/`: sygnały, walidacja przydziału planszy i kontrola commita wdrażanego na Netlify. Nie są to testy interfejsu w przeglądarce.
+- `npm run test:backend` lub `npm test --prefix server` — 16 testów w `server/tests/`: losowanie, wspólne reguły/dane gry i integracja Socket.IO, w tym zajęte imiona, nieprawidłowe komunikaty, błędne/spóźnione ruchy, równoczesne BINGO i rozłączenia.
 - `npm run test:e2e:install` — pobranie Chromium, Firefox i WebKit do Playwright (ponów po aktualizacji Playwright); na Linux CI może być potrzebne `npx playwright install --with-deps chromium firefox webkit`.
-- `npm run test:e2e` — 9 scenariuszy w 5 projektach (45 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, fokus, localStorage, jednakowe imiona, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
+- `npm run test:e2e` — 10 scenariuszy w 5 projektach (50 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, adresy bez `#`, fokus, localStorage, blokowanie zajętych imion, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
 - `npm run test:all` — testy jednostkowe/integracyjne oraz E2E.
 - Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla zmienionych plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC i CSS, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
 - Biome ma konfigurację w `biome.json` i pomija pliki ignorowane przez Git oraz lockfile. Markdown nie jest objęty skonfigurowanym formatowaniem.
@@ -86,7 +92,27 @@ Projekty mobilne: `--project=mobile-chromium` i `--project=mobile-webkit`; emula
 Testy RWD sprawdzają lobby, grę i podsumowanie przy szerokościach 320/390/768/1280 px oraz bazowym tekście 16/32 px.
 Style używają `rem` dla typografii i wymiarów zależnych od tekstu, `em` w breakpointach oraz `%`/`fr` dla płynnych układów. Cienkie obramowania i dekoracyjne efekty pozostają w px.
 Reset przeglądarkowy i tokeny kolorów są w `src/styles/base.css`; nie wymagają Tailwinda ani dodatkowej konfiguracji PostCSS.
-Workflow `.github/workflows/verify.yml` uruchamia kontrole, wszystkie testy i build dla PR-ów do `master` oraz pushów na `master`. Push na `develop` bez PR nie uruchamia Verify; kolejne zmiany w otwartym PR uruchamiają kontrolę PR, bez dodatkowego przebiegu push.
+Workflow `.github/workflows/verify.yml` uruchamia kontrole, wszystkie testy i build dla PR-ów do `master` oraz pushów na `master`. Push na gałąź roboczą bez PR nie uruchamia Verify; kolejne zmiany w otwartym PR uruchamiają kontrolę PR, bez dodatkowego przebiegu push.
+
+## Praca z repozytorium
+
+`master` jest gałęzią domyślną i produkcyjną. Nie używamy stałej gałęzi `develop`. Każdą zmianę przygotowuj na krótkiej gałęzi utworzonej z aktualnego `master`:
+
+```powershell
+git switch master
+git pull --ff-only origin master
+git switch -c fix/nazwa-poprawki
+```
+
+Komendy zakładają czysty katalog roboczy. Jeśli zmiany są już niezacommitowane na lokalnym `master`, samo `git switch -c fix/nazwa-poprawki` zachowa je na nowej gałęzi.
+
+1. Wprowadź zmiany i uruchom odpowiednie kontrole lokalne.
+2. Zacommituj je i wypchnij gałąź: `git push -u origin fix/nazwa-poprawki`.
+3. Utwórz PR do `master`, poczekaj na zielony wymagany status `verify` i scal przez **Squash and merge**.
+4. Po scaleniu Verify sprawdzi faktyczny commit na `master`, a jego sukces uruchomi Deploy.
+5. Usuń gałąź roboczą po merge. Kolejną utwórz ponownie z aktualnego `master`.
+
+Ochrona `master` wymaga PR, statusu `verify` i aktualności gałęzi; blokuje force push oraz usuwanie. Jeśli w czasie pracy zmieni się `master`, zaktualizuj gałąź PR przez **Update branch** lub merge `origin/master`. Nie omijaj ochrony bezpośrednim pushem ani force pushem.
 
 ### Czyszczenie plików generowanych
 
@@ -137,6 +163,7 @@ Repo jest publiczne — nie commituj prawdziwych sekretów. W repo trzymamy tylk
 - `VITE_SERVER_URL` — URL do backendu Socket.IO (np. `http://localhost:3001` lokalnie albo `https://<twoj-backend>.onrender.com` po deployu).
 
 Skopiuj `.env.example` do `.env.dev` dla pracy lokalnej i do `.env.prod` dla produkcji, ustawiając odpowiedni niepusty adres.
+Przykład zawiera puste wartości — przed uruchomieniem uzupełnij `VITE_SERVER_URL`; lokalnie użyj `http://localhost:3001`.
 `npm run dev` wczytuje `.env.dev` (tryb `dev`), a `npm run build` wczytuje `.env.prod` (tryb `prod`, nadal build produkcyjny).
 Oba pliki są ignorowane przez Git. Na hostingu ustaw zmienne w panelu przed buildem — pliki lokalne nie trafiają do repozytorium.
 `NODE_VERSION`, `HUSKY` i `NPM_FLAGS` ustaw w panelu Netlify; wpisanie ich do pliku Vite nie konfiguruje instalacji zależności ani wersji Node.
@@ -160,9 +187,20 @@ Backend nie wczytuje automatycznie `server/.env`. Ustaw `PORT` w środowisku pro
 - Na właściwą rozgrywkę zalecana jest instancja backendu bez usypiania z bezczynności; Free nadaje się do testów, ale ma cold start i ograniczenia.
 - Pokoje są w RAM i znikają przy restarcie/redeployu, niezależnie od planu.
 
+Zmienne Netlify z dostępem podczas **Builds / Production** (wartości ustaw w panelu, nie zapisuj konfiguracji konkretnego wdrożenia w README):
+
+| Zmienna | Wartość |
+| --- | --- |
+| `VITE_SERVER_URL` | Publiczny adres HTTPS własnego backendu Socket.IO |
+| `NODE_VERSION` | Wersja Node zgodna z projektem |
+| `HUSKY` | Ustawienie wyłączające hooki podczas instalacji na hostingu |
+| `NPM_FLAGS` | Flagi zapewniające instalację devDependencies potrzebnych do builda |
+
+Wartości wpisuj bez cudzysłowów. Na Renderze `PORT` jest ustawiany automatycznie; żadna z powyższych zmiennych frontendu nie jest wymagana przez backend. Wersję Node na Renderze można przypiąć osobno przez `NODE_VERSION`.
+
 ### Automatyczne wdrożenia po testach
 
-Workflow `.github/workflows/deploy.yml` uruchamia buildy obu hostingów wyłącznie po udanym **Verify** dla pushu na `master` w tym repo. PR i push na `develop` nie publikują aplikacji. Przestarzały przebieg Verify jest pomijany.
+Workflow `.github/workflows/deploy.yml` uruchamia buildy obu hostingów wyłącznie po udanym **Verify** dla pushu na `master` w tym repo. PR i pushe na gałęzie robocze nie publikują produkcji. Przestarzały przebieg Verify jest pomijany.
 
 Konfiguracja jednorazowa:
 
@@ -172,11 +210,15 @@ Konfiguracja jednorazowa:
    - `RENDER_DEPLOY_HOOK_URL` — pełny URL hooka Render.
    - `NETLIFY_BUILD_HOOK_URL` — pełny URL hooka Netlify dla `master`.
 4. Pozostaw produkcyjną gałąź Netlify jako `master` i dotychczasowe cztery zmienne środowiskowe. Nie ustawiaj ręcznie `INCOMING_HOOK_BODY` ani `COMMIT_REF`.
-5. Wyślij workflow na domyślną gałąź `develop` (wymóg `workflow_run`), a następnie scal PR do `master`.
+5. Plik workflow musi znajdować się na domyślnej gałęzi `master` (wymóg `workflow_run`). Zmiany workflow wprowadzaj przez PR do `master`.
 
 `netlify.toml` pomija natywne produkcyjne buildy po pushu przez `ignore`; build hook omija tę regułę. W panelu oczekiwany jest wpis **Canceled** po pushu, a później osobny build uruchomiony hookiem po Verify — anulowany wpis nie oznacza drugiego pełnego builda ani błędu publikacji. **Nie używaj „Stop builds”** — zablokowałoby też hooki. Produkcyjny build wymaga commita przekazanego przez workflow i sprawdza jego zgodność z `COMMIT_REF`; zwykły ręczny deploy bez payloadu nie zostanie opublikowany. Jeśli w trakcie kolejki pojawi się nowszy commit, niezgodny build zakończy się błędem zamiast opublikować niesprawdzony kod.
 
 Render dostaje dokładny SHA przez `ref`. Zielony **Deploy** oznacza przyjęcie żądań buildów, nie zakończenie publikacji — końcowy status i commit sprawdź w Renderze i Netlify. Hooki nie zapewniają atomowego wdrożenia obu usług; jeśli jedna zawiedzie, sprawdź logi przed ponowieniem. URL-e hooków są sekretami: nie dodawaj ich do `.env.example`, repo ani wiadomości.
+
+Netlify może niezależnie budować **Deploy Preview** dla PR, jeszcze przed zakończeniem Verify. Preview nie zastępuje produkcji, ale jeśli korzysta z produkcyjnego `VITE_SERVER_URL`, łączy się z tym samym backendem i nie jest odizolowanym środowiskiem gry.
+
+Po wdrożeniu sprawdź **Live** na Renderze i **Published** dla produkcji na Netlify oraz zgodność commitów. Przed udostępnieniem gry przetestuj dwie osoby na osobnych telefonach, w tym jedną przez internet komórkowy. Podczas rozgrywki nie wdrażaj zmian ani nie restartuj backendu; płatna instancja bez usypiania nie zapewnia trwałości pokojów.
 
 ### Publiczne adresy
 
