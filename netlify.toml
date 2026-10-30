@@ -6,3 +6,8 @@
   # Hook-triggered builds bypass ignore; native push builds are skipped.
   ignore = "exit 0"
   command = "node --import tsx scripts/verify-deploy.mts && npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

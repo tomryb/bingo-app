@@ -26,7 +26,7 @@ test("two players create and join a room, finish a round and replay together", a
   });
   const second = await secondContext.newPage();
   const roomId = `e2e-${randomUUID()} / święta #?`;
-  const roomPath = `#/${encodeURIComponent(roomId)}`;
+  const roomPath = `/${encodeURIComponent(roomId)}`;
   const errors: string[] = [];
   for (const page of [first, second]) {
     page.on("pageerror", (error) => errors.push(error.message));
@@ -50,7 +50,9 @@ test("two players create and join a room, finish a round and replay together", a
       .getByRole("button", { name: UI.createRoom, exact: true })
       .click();
     await expect(tiles(first)).toHaveCount(9);
-    await expect(first).toHaveURL(new RegExp(`${roomPath}$`));
+    await expect(first).toHaveURL(
+      (url) => url.pathname === roomPath && url.hash === "",
+    );
     await expect(first.locator("main h1")).toBeFocused();
     await first.getByRole("button", { name: UI.copyRoom }).click();
     await expect(first.locator("html")).toHaveAttribute(
@@ -93,7 +95,9 @@ test("two players create and join a room, finish a round and replay together", a
       await tiles(first).nth(index).click();
     }
     for (const page of [first, second]) {
-      await expect(page).toHaveURL(new RegExp(`${roomPath}/podsumowanie$`));
+      await expect(page).toHaveURL(
+        (url) => url.pathname === `${roomPath}/podsumowanie` && url.hash === "",
+      );
       await expect(
         page.getByRole("heading", { name: UI.summaryTitle }),
       ).toBeVisible();
@@ -123,7 +127,9 @@ test("two players create and join a room, finish a round and replay together", a
     ).toBeVisible();
     await second.getByRole("button", { name: UI.replay, exact: true }).click();
     for (const page of [first, second]) {
-      await expect(page).toHaveURL(new RegExp(`${roomPath}$`));
+      await expect(page).toHaveURL(
+        (url) => url.pathname === roomPath && url.hash === "",
+      );
       await expect(tiles(page)).toHaveCount(9);
       await expect(
         tiles(page).filter({ has: page.locator(".tile-check") }),
@@ -149,6 +155,17 @@ test("two players create and join a room, finish a round and replay together", a
     ).toBeVisible();
     await first.getByRole("button", { name: UI.leave, exact: true }).click();
     await expect(first.getByLabel(UI.nameLabel)).toBeVisible();
+    await expect(first).toHaveURL(
+      (url) => url.pathname === "/" && url.hash === "",
+    );
+    for (const path of [roomPath, `${roomPath}/podsumowanie`]) {
+      const response = await first.goto(path);
+      expect(response?.status()).toBe(200);
+      await expect(first.getByLabel(UI.nameLabel)).toBeVisible();
+      await expect(first).toHaveURL(
+        (url) => url.pathname === "/" && url.hash === "",
+      );
+    }
     expect(errors).toEqual([]);
   } finally {
     await secondContext.close();

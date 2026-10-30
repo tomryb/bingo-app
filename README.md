@@ -44,7 +44,7 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 
 - Komunikaty są zawsze neutralne: „Ania zaznacza”, „Kuba dołącza do pokoju”, „Alex opuszcza pokój”. Powiadomienia o wejściu i wyjściu są widoczne w grze oraz w podsumowaniu.
 - Serwer wykrywa pierwszą pełną linię po zaznaczeniu kafelka i kończy rundę wszystkim. Dalsze zaznaczenia są blokowane.
-- W grze adres zawiera nazwę pokoju (`#/wigilia`), a w podsumowaniu `#/wigilia/podsumowanie`. Znaki specjalne są kodowane w URL. Adres opisuje widok, nie przywraca sesji po odświeżeniu.
+- W grze adres zawiera nazwę pokoju (`/wigilia`), a w podsumowaniu `/wigilia/podsumowanie`, bez `#`. Znaki specjalne są kodowane w URL. Adres opisuje widok, nie przywraca sesji po odświeżeniu. Reguła SPA w `netlify.toml` kieruje ścieżki bez istniejącego pliku do `index.html`, aby bezpośrednie otwarcie lub odświeżenie nie kończyło się błędem 404.
 - W podsumowaniu zwycięzca jest pierwszy u każdego i widać liczbę zaznaczeń poszczególnych graczy.
 - Podsumowanie wybiera jeden z 10 żartobliwych świątecznych tekstów z nazwami pozostałych graczy (dokładnie takimi, jakie wpisano w grze). Tekst jest wspólny i stały dla danej rundy; gra solo ma osobny komunikat.
 - „Zagrajmy ponownie” oznacza gotowość. Gdy wszyscy obecni ją potwierdzą, serwer losuje nowe plansze, zeruje zaznaczenia i przenosi wszystkich do widoku pokoju.
