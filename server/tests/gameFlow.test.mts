@@ -168,6 +168,39 @@ function observe(client: TestSocket) {
   return { marks, summaries };
 }
 
+test("names are unique within a room and released when a player leaves", async (t) => {
+  const connect = await startServer(t);
+  const first = await connect();
+  const second = await connect();
+  const roomId = "unique-names";
+  const board = await join(first, roomId, "Tomasz");
+  for (const user of ["Tomasz", "  tOMASZ  ", "Ｔｏｍａｓｚ"]) {
+    const rejected = nextEvent(second, "join-rejected");
+    second.emit("join-room", {
+      roomId,
+      user,
+      size: 3,
+      textsVersion: TEXTS_VERSION,
+      joinRequestId: "occupied-name",
+    });
+    assert.deepEqual(await rejected, {
+      reason: "name-taken",
+      joinRequestId: "occupied-name",
+    });
+  }
+  const state = nextEvent(first, "room-state");
+  assert.equal((await join(first, roomId, "Tomasz")).roundId, board.roundId);
+  assert.deepEqual((await state).players, [{ id: first.id, user: "Tomasz" }]);
+  await join(second, "another-room", "Tomasz");
+  second.emit("leave-room", { roomId: "another-room" });
+  await sync(second, "another-room");
+  await join(second, roomId, "Tomasz2");
+  first.emit("leave-room", { roomId });
+  await sync(first, roomId);
+  const third = await connect();
+  await join(third, roomId, "Tomasz");
+});
+
 test("Socket.IO preserves room size, boards, winner order, readiness and exit flow", {
   timeout: 20000,
 }, async (t) => {

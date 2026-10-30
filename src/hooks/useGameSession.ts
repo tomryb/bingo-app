@@ -134,7 +134,11 @@ export function useGameSession(
       pendingJoin.current = null;
       setJoining(false);
       toast.error(
-        reason === "not-enough-texts" ? UI.notEnoughTexts : UI.joinError,
+        reason === "name-taken"
+          ? UI.nameTaken
+          : reason === "not-enough-texts"
+            ? UI.notEnoughTexts
+            : UI.joinError,
       );
     };
     const onRequestRejected = ({

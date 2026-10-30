@@ -2,6 +2,7 @@ import { ICONS } from "../data/icons";
 import { UI } from "../data/uiTexts";
 import type { BoardAssignment, PlayerIdentity } from "../types/bingo";
 import BingoBoard from "./BingoBoard";
+import CopyRoomButton from "./CopyRoomButton";
 
 interface GamePageProps {
   board: BoardAssignment;
@@ -27,6 +28,7 @@ export default function GamePage({
             {UI.roomPrefix} {board.roomId}
           </h1>
           <p className="room-subtitle">{UI.greeting(userName.trim())}</p>
+          <CopyRoomButton roomId={board.roomId} />
         </div>
         <button type="button" className="secondary-button" onClick={onLeave}>
           {UI.leave}

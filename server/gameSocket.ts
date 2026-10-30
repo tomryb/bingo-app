@@ -186,6 +186,26 @@ export function registerGameSockets(
           return;
         }
 
+        const userName = user ?? socket.id;
+        const normalizedName = userName
+          .normalize("NFKC")
+          .toLocaleLowerCase("pl-PL");
+        const nameTaken = Object.entries(
+          rooms.get(roomId)?.usernames ?? {},
+        ).some(
+          ([id, name]) =>
+            id !== socket.id &&
+            name.normalize("NFKC").toLocaleLowerCase("pl-PL") ===
+              normalizedName,
+        );
+        if (nameTaken) {
+          socket.emit("join-rejected", {
+            reason: "name-taken",
+            ...(joinRequestId === undefined ? {} : { joinRequestId }),
+          });
+          return;
+        }
+
         socket.join(roomId);
 
         let room = rooms.get(roomId);
@@ -203,7 +223,7 @@ export function registerGameSockets(
         }
 
         room.marked[socket.id] = Array(room.size * room.size).fill(false);
-        room.usernames[socket.id] = user ?? socket.id;
+        room.usernames[socket.id] = userName;
         room.boards[socket.id] = createBoard(
           texts,
           room.size,

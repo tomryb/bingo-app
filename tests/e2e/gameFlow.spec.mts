@@ -25,19 +25,39 @@ test("two players create and join a room, finish a round and replay together", a
     userAgent: await first.evaluate(() => navigator.userAgent),
   });
   const second = await secondContext.newPage();
-  const roomId = `e2e-${randomUUID()}`;
+  const roomId = `e2e-${randomUUID()} / święta #?`;
+  const roomPath = `#/${encodeURIComponent(roomId)}`;
   const errors: string[] = [];
   for (const page of [first, second]) {
     page.on("pageerror", (error) => errors.push(error.message));
   }
+  await first.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: async (text: string) => {
+          document.documentElement.dataset.copiedRoom = text;
+        },
+      },
+    });
+  });
   try {
     await enterLobby(first, "Ania", roomId);
+    await expect(first.getByLabel(UI.nameLabel)).toHaveAttribute(
+      "placeholder",
+      "np. Zosia",
+    );
     await first
       .getByRole("button", { name: UI.createRoom, exact: true })
       .click();
     await expect(tiles(first)).toHaveCount(9);
-    await expect(first).toHaveURL(/#\/gra$/);
+    await expect(first).toHaveURL(new RegExp(`${roomPath}$`));
     await expect(first.locator("main h1")).toBeFocused();
+    await first.getByRole("button", { name: UI.copyRoom }).click();
+    await expect(first.locator("html")).toHaveAttribute(
+      "data-copied-room",
+      roomId,
+    );
+    await expect(first.getByText(UI.roomCopied, { exact: true })).toBeVisible();
 
     await enterLobby(second, "Kuba", roomId);
     await expect(
@@ -73,7 +93,7 @@ test("two players create and join a room, finish a round and replay together", a
       await tiles(first).nth(index).click();
     }
     for (const page of [first, second]) {
-      await expect(page).toHaveURL(/#\/podsumowanie$/);
+      await expect(page).toHaveURL(new RegExp(`${roomPath}/podsumowanie$`));
       await expect(
         page.getByRole("heading", { name: UI.summaryTitle }),
       ).toBeVisible();
@@ -86,6 +106,14 @@ test("two players create and join a room, finish a round and replay together", a
       await expect(results.nth(1)).toContainText("1 / 9");
     }
 
+    await first.evaluate(() => {
+      delete document.documentElement.dataset.copiedRoom;
+    });
+    await first.getByRole("button", { name: UI.copyRoom }).click();
+    await expect(first.locator("html")).toHaveAttribute(
+      "data-copied-room",
+      roomId,
+    );
     await first.getByRole("button", { name: UI.replay, exact: true }).click();
     await expect(
       first.getByRole("button", { name: UI.waiting }),
@@ -95,7 +123,7 @@ test("two players create and join a room, finish a round and replay together", a
     ).toBeVisible();
     await second.getByRole("button", { name: UI.replay, exact: true }).click();
     for (const page of [first, second]) {
-      await expect(page).toHaveURL(/#\/gra$/);
+      await expect(page).toHaveURL(new RegExp(`${roomPath}$`));
       await expect(tiles(page)).toHaveCount(9);
       await expect(
         tiles(page).filter({ has: page.locator(".tile-check") }),

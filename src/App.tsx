@@ -19,7 +19,7 @@ export default function App() {
     preferences.roomId,
     session.connected && !session.board,
   );
-  usePageLocation(Boolean(session.board), Boolean(session.summary));
+  usePageLocation(session.board?.roomId, Boolean(session.summary));
 
   function join(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
