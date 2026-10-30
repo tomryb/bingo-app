@@ -1,0 +1,60 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Verify]
+    types: [completed]
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: Check that the verified commit is still master
+        id: revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          VERIFIED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          latest="$(gh api "repos/$REPOSITORY/git/ref/heads/master" --jq '.object.sha')"
+          if [ "$latest" = "$VERIFIED_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping superseded commit $VERIFIED_SHA"
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Trigger verified production builds
+        if: steps.revision.outputs.current == 'true'
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
+          VERIFIED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          : "${RENDER_DEPLOY_HOOK_URL:?Missing RENDER_DEPLOY_HOOK_URL}"
+          : "${NETLIFY_BUILD_HOOK_URL:?Missing NETLIFY_BUILD_HOOK_URL}"
+          curl --fail --silent --show-error --max-time 60 \
+            --request POST --get \
+            --data-urlencode "ref=$VERIFIED_SHA" \
+            --output /dev/null "$RENDER_DEPLOY_HOOK_URL"
+          curl --fail --silent --show-error --max-time 60 \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --data "{\"commit\":\"$VERIFIED_SHA\"}" \
+            --output /dev/null "$NETLIFY_BUILD_HOOK_URL"
+          echo "Builds requested for $VERIFIED_SHA. Check Render and Netlify for deployment completion."

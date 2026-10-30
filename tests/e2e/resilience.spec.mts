@@ -33,7 +33,32 @@ test("blocked preference writes preserve usable inputs and report the failure", 
   await expect(page.getByLabel(UI.nameLabel)).toHaveValue("Alex");
 });
 
-test("identical names identify only the current player", async ({
+test("clipboard failures are reported without leaving the game", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: async () => {
+          throw new DOMException("Clipboard blocked", "NotAllowedError");
+        },
+      },
+    });
+  });
+  await page.goto("/");
+  await page.getByLabel(UI.nameLabel).fill("Alex");
+  await page
+    .getByLabel(UI.roomLabel, { exact: true })
+    .fill(`copy-${crypto.randomUUID()}`);
+  await page.locator("form button[type=submit]").click();
+  await page.getByRole("button", { name: UI.copyRoom }).click();
+  await expect(
+    page.getByText(UI.roomCopyFailed, { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("region", { name: UI.boardLabel })).toBeVisible();
+});
+
+test("occupied names are rejected and a renamed player can join", async ({
   browser,
   page,
   baseURL,
@@ -47,10 +72,19 @@ test("identical names identify only the current player", async ({
       await player.getByLabel(UI.nameLabel).fill("Alex");
       await player.getByLabel(UI.roomLabel, { exact: true }).fill(roomId);
       await player.locator("form button[type=submit]").click();
-      await expect(
-        player.getByRole("region", { name: UI.boardLabel }),
-      ).toBeVisible();
+      if (player === page) {
+        await expect(
+          player.getByRole("region", { name: UI.boardLabel }),
+        ).toBeVisible();
+      }
     }
+    await expect(second.getByText(UI.nameTaken, { exact: true })).toBeVisible();
+    await expect(second.locator("form button[type=submit]")).toBeEnabled();
+    await second.getByLabel(UI.nameLabel).fill("Alex2");
+    await second.locator("form button[type=submit]").click();
+    await expect(
+      second.getByRole("region", { name: UI.boardLabel }),
+    ).toBeVisible();
     for (const player of [page, second]) {
       await expect(player.locator(".player-chip")).toHaveCount(2);
       await expect(

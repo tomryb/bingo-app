@@ -4,6 +4,7 @@ import { playerMessage } from "../shared/playerMessage";
 import { summaryMessage } from "../shared/summaryMessage";
 import type { RoundSummary } from "../types/bingo";
 import type { RoundReadiness } from "../types/socket";
+import CopyRoomButton from "./CopyRoomButton";
 
 interface SummaryPageProps {
   summary: RoundSummary;
@@ -37,6 +38,7 @@ export default function SummaryPage({
         <p className="room-subtitle">
           {UI.roomPrefix} {summary.roomId} · {summary.size}×{summary.size}
         </p>
+        <CopyRoomButton roomId={summary.roomId} />
         <p className="board-hint">{summaryMessage(summary)}</p>
         <ul className="summary-results">
           {summary.players.map((player) => (

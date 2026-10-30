@@ -8,6 +8,7 @@ Prosta multiplayerowa gra w **świąteczne (bożonarodzeniowe)** Bingo — gracz
 - Zaznaczanie pól oraz informowanie innych graczy o zaznaczeniach
 - Automatyczne wykrywanie zwycięstwa przez serwer, lokalne podświetlenie zwycięskiej linii i wspólne podsumowanie.
 - Żyjąca lista graczy w pokoju (dołączanie/wyjście aktualizowane na bieżąco)
+- Kopiowanie samej nazwy pokoju w grze i podsumowaniu, aby wysłać ją pozostałym graczom.
 - Responsywny interfejs dostosowany do urządzeń mobilnych i desktopów, w świątecznej kolorystyce (czerwień/zieleń) i z emoji na kafelkach
 - Na telefonach pola formularza mają czcionkę 16 px (bez automatycznego zoomu formularza na iOS), przyciski co najmniej 44 px wysokości, a układ uwzględnia bezpieczne obszary ekranu.
 - Każdy gracz otrzymuje od serwera własny, losowy zestaw i układ haseł, bez powtórzeń na planszy i identycznych plansz w pokoju.
@@ -43,12 +44,13 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 
 - Komunikaty są zawsze neutralne: „Ania zaznacza”, „Kuba dołącza do pokoju”, „Alex opuszcza pokój”. Powiadomienia o wejściu i wyjściu są widoczne w grze oraz w podsumowaniu.
 - Serwer wykrywa pierwszą pełną linię po zaznaczeniu kafelka i kończy rundę wszystkim. Dalsze zaznaczenia są blokowane.
-- Wszyscy przechodzą na `#/podsumowanie`, gdzie zwycięzca jest pierwszy u każdego i widać liczbę zaznaczeń poszczególnych graczy.
+- W grze adres zawiera nazwę pokoju (`#/wigilia`), a w podsumowaniu `#/wigilia/podsumowanie`. Znaki specjalne są kodowane w URL. Adres opisuje widok, nie przywraca sesji po odświeżeniu.
+- W podsumowaniu zwycięzca jest pierwszy u każdego i widać liczbę zaznaczeń poszczególnych graczy.
 - Podsumowanie wybiera jeden z 10 żartobliwych świątecznych tekstów z nazwami pozostałych graczy (dokładnie takimi, jakie wpisano w grze). Tekst jest wspólny i stały dla danej rundy; gra solo ma osobny komunikat.
-- „Zagrajmy ponownie” oznacza gotowość. Gdy wszyscy obecni ją potwierdzą, serwer losuje nowe plansze, zeruje zaznaczenia i przenosi wszystkich na `#/gra`.
+- „Zagrajmy ponownie” oznacza gotowość. Gdy wszyscy obecni ją potwierdzą, serwer losuje nowe plansze, zeruje zaznaczenia i przenosi wszystkich do widoku pokoju.
 - Osoba dołączająca po finale widzi podsumowanie i może potwierdzić gotowość. Wyjście lub rozłączenie usuwa ją z oczekujących na rewanż.
 - Po wyjściu lub wykrytym rozłączeniu serwer usuwa planszę i zaznaczenia tej osoby; powrót oznacza nową planszę z pustymi zaznaczeniami. Nie zmienia to plansz pozostałych osób. Wyniki już zakończonej rundy pozostają w podsumowaniu jako zapis finału. Po wyjściu ostatniej osoby pokój jest usuwany.
-- Lista graczy rozpoznaje osoby po ID połączenia, nie imieniu; identyczne imiona są dozwolone.
+- Lista graczy rozpoznaje osoby po ID połączenia. Imię musi być unikalne wśród obecnych graczy w danym pokoju (bez rozróżniania wielkości liter i skrajnych spacji). Zajęte imię powoduje odmowę dołączenia z sugestią dopisania liczby. Wyjście lub wykryte rozłączenie zwalnia imię; w innym pokoju można używać tego samego imienia.
 - Dołączanie ma limit 8 sekund. Brak potwierdzenia odblokowuje formularz; spóźnione odpowiedzi poprzedniej próby nie zastępują nowej sesji.
 - Niedostępny localStorage nie blokuje gry: preferencje pozostają w pamięci, a interfejs informuje o braku trwałego zapisu.
 - Zmiana widoku przenosi fokus na jego nagłówek.
@@ -134,7 +136,10 @@ Repo jest publiczne — nie commituj prawdziwych sekretów. W repo trzymamy tylk
 
 - `VITE_SERVER_URL` — URL do backendu Socket.IO (np. `http://localhost:3001` lokalnie albo `https://<twoj-backend>.onrender.com` po deployu).
 
-W lokalnym `.env` wpisz niepusty adres; na hostingu ustaw go w panelu przed buildem.
+Skopiuj `.env.example` do `.env.dev` dla pracy lokalnej i do `.env.prod` dla produkcji, ustawiając odpowiedni niepusty adres.
+`npm run dev` wczytuje `.env.dev` (tryb `dev`), a `npm run build` wczytuje `.env.prod` (tryb `prod`, nadal build produkcyjny).
+Oba pliki są ignorowane przez Git. Na hostingu ustaw zmienne w panelu przed buildem — pliki lokalne nie trafiają do repozytorium.
+`NODE_VERSION`, `HUSKY` i `NPM_FLAGS` ustaw w panelu Netlify; wpisanie ich do pliku Vite nie konfiguruje instalacji zależności ani wersji Node.
 Brak zmiennej oznacza fallback `http://localhost:3001`, ale pusty string może skierować klienta na origin frontendu.
 Po zmianie zmiennej uruchom ponownie Vite albo przebuduj frontend na hostingu.
 
@@ -154,6 +159,28 @@ Backend nie wczytuje automatycznie `server/.env`. Ustaw `PORT` w środowisku pro
 - W buildzie Netlify ustaw `VITE_SERVER_URL` na pełny publiczny adres HTTPS backendu; po zmianie zmiennej wykonaj nowy build.
 - Na właściwą rozgrywkę zalecana jest instancja backendu bez usypiania z bezczynności; Free nadaje się do testów, ale ma cold start i ograniczenia.
 - Pokoje są w RAM i znikają przy restarcie/redeployu, niezależnie od planu.
+
+### Automatyczne wdrożenia po testach
+
+Workflow `.github/workflows/deploy.yml` uruchamia buildy obu hostingów wyłącznie po udanym **Verify** dla pushu na `master` w tym repo. PR i push na `develop` nie publikują aplikacji. Przestarzały przebieg Verify jest pomijany.
+
+Konfiguracja jednorazowa:
+
+1. W Renderze skopiuj **Settings → Deploy Hook** i wyłącz **Auto-Deploy**. Nie zmieniaj komend build/start.
+2. W Netlify utwórz **Build hook** dla gałęzi `master` w **Project configuration → Developer settings → Continuous deployment → Build hooks**.
+3. W GitHub utwórz **Settings → Environments → production** i dodaj environment secrets:
+   - `RENDER_DEPLOY_HOOK_URL` — pełny URL hooka Render.
+   - `NETLIFY_BUILD_HOOK_URL` — pełny URL hooka Netlify dla `master`.
+4. Pozostaw produkcyjną gałąź Netlify jako `master` i dotychczasowe cztery zmienne środowiskowe. Nie ustawiaj ręcznie `INCOMING_HOOK_BODY` ani `COMMIT_REF`.
+5. Wyślij workflow na domyślną gałąź `develop` (wymóg `workflow_run`), a następnie scal PR do `master`.
+
+`netlify.toml` pomija natywne produkcyjne buildy po pushu przez `ignore`; build hook omija tę regułę. **Nie używaj „Stop builds”** — zablokowałoby też hooki. Produkcyjny build wymaga commita przekazanego przez workflow i sprawdza jego zgodność z `COMMIT_REF`; zwykły ręczny deploy bez payloadu nie zostanie opublikowany. Jeśli w trakcie kolejki pojawi się nowszy commit, niezgodny build zakończy się błędem zamiast opublikować niesprawdzony kod.
+
+Render dostaje dokładny SHA przez `ref`. Zielony **Deploy** oznacza przyjęcie żądań buildów, nie zakończenie publikacji — końcowy status i commit sprawdź w Renderze i Netlify. Hooki nie zapewniają atomowego wdrożenia obu usług; jeśli jedna zawiedzie, sprawdź logi przed ponowieniem. URL-e hooków są sekretami: nie dodawaj ich do `.env.example`, repo ani wiadomości.
+
+### Publiczne adresy
+
+Frontend: `https://holiday-bingo-app.netlify.app/`. Zmiana nazwy projektu Netlify zmienia subdomenę bez potrzeby zmiany kodu. Adres bez `netlify.app` lub `onrender.com` wymaga własnej domeny i konfiguracji DNS, np. frontend `bingo.twoja-domena.pl` oraz backend `api.twoja-domena.pl`. Po zmianie adresu backendu zaktualizuj `VITE_SERVER_URL` i przebuduj frontend.
 
 ### Powiadomienia na telefonie
 
@@ -190,4 +217,11 @@ npm run dev
 ```
 
 Tryb developerski backendu z automatycznym restartem: `npm run dev --prefix server` z katalogu głównego.
+Po instalacji zależności obu pakietów możesz uruchomić frontend i backend jedną komendą:
+
+```powershell
+npm run dev:all
+```
+
+Komenda używa `.env.dev` frontendu i domyślnego portu backendu 3001. `Ctrl+C` zatrzymuje oba procesy; zakończenie jednego również zatrzymuje drugi. `npm run dev` nadal uruchamia wyłącznie frontend.
 Backend korzysta z `tsx`, aby importować współdzielone pliki TypeScript z pakietu ESM frontendu.

@@ -15,7 +15,7 @@ export const UI = {
   joinTitle: "Dołącz do zabawy",
   joinIntro: "Jeden pokój, bliscy ludzie, różne plansze.",
   nameLabel: "Twoje imię",
-  namePlaceholder: "np. Ania",
+  namePlaceholder: "np. Zosia",
   roomLabel: "Nazwa pokoju",
   roomPlaceholder: "np. wigilia-u-babci",
   defaultRoom: "wigilia",
@@ -38,6 +38,10 @@ export const UI = {
   summaryEyebrow: "Świąteczny finał",
   summaryTitle: "BINGO! Runda zakończona",
   roomPrefix: "Pokój:",
+  copyRoom: "Kopiuj nazwę pokoju",
+  roomCopied: "Nazwa pokoju skopiowana — wyślij ją pozostałym graczom.",
+  roomCopyFailed:
+    "Nie udało się skopiować nazwy pokoju. Zaznacz ją i skopiuj ręcznie.",
   selfSuffix: " (Ty)",
   readinessPrefix: "Gotowość do kolejnej rundy:",
   readinessNote: "Nowa runda ruszy, gdy wszyscy obecni będą gotowi.",
@@ -65,6 +69,8 @@ export const UI = {
   notEnoughTexts: "Za mało haseł na wybraną planszę.",
   joinError: "Nie udało się dołączyć. Odśwież stronę i sprawdź wersję serwera.",
   joinTimeout: "Serwer nie potwierdził dołączenia. Spróbuj ponownie.",
+  nameTaken:
+    "To imię jest już zajęte w tym pokoju. Dodaj liczbę lub zmień imię, np. Tomasz2.",
   requestRejected:
     "Serwer odrzucił nieprawidłowe żądanie. Spróbuj ponownie lub odśwież stronę.",
   storageUnavailable:
