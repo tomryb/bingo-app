@@ -86,7 +86,7 @@ Projekty mobilne: `--project=mobile-chromium` i `--project=mobile-webkit`; emula
 Testy RWD sprawdzają lobby, grę i podsumowanie przy szerokościach 320/390/768/1280 px oraz bazowym tekście 16/32 px.
 Style używają `rem` dla typografii i wymiarów zależnych od tekstu, `em` w breakpointach oraz `%`/`fr` dla płynnych układów. Cienkie obramowania i dekoracyjne efekty pozostają w px.
 Reset przeglądarkowy i tokeny kolorów są w `src/styles/base.css`; nie wymagają Tailwinda ani dodatkowej konfiguracji PostCSS.
-Workflow `.github/workflows/verify.yml` uruchamia kontrole, wszystkie testy i build na push/PR.
+Workflow `.github/workflows/verify.yml` uruchamia kontrole, wszystkie testy i build dla PR-ów do `master` oraz pushów na `master`. Push na `develop` bez PR nie uruchamia Verify; kolejne zmiany w otwartym PR uruchamiają kontrolę PR, bez dodatkowego przebiegu push.
 
 ### Czyszczenie plików generowanych
 
@@ -174,7 +174,7 @@ Konfiguracja jednorazowa:
 4. Pozostaw produkcyjną gałąź Netlify jako `master` i dotychczasowe cztery zmienne środowiskowe. Nie ustawiaj ręcznie `INCOMING_HOOK_BODY` ani `COMMIT_REF`.
 5. Wyślij workflow na domyślną gałąź `develop` (wymóg `workflow_run`), a następnie scal PR do `master`.
 
-`netlify.toml` pomija natywne produkcyjne buildy po pushu przez `ignore`; build hook omija tę regułę. **Nie używaj „Stop builds”** — zablokowałoby też hooki. Produkcyjny build wymaga commita przekazanego przez workflow i sprawdza jego zgodność z `COMMIT_REF`; zwykły ręczny deploy bez payloadu nie zostanie opublikowany. Jeśli w trakcie kolejki pojawi się nowszy commit, niezgodny build zakończy się błędem zamiast opublikować niesprawdzony kod.
+`netlify.toml` pomija natywne produkcyjne buildy po pushu przez `ignore`; build hook omija tę regułę. W panelu oczekiwany jest wpis **Canceled** po pushu, a później osobny build uruchomiony hookiem po Verify — anulowany wpis nie oznacza drugiego pełnego builda ani błędu publikacji. **Nie używaj „Stop builds”** — zablokowałoby też hooki. Produkcyjny build wymaga commita przekazanego przez workflow i sprawdza jego zgodność z `COMMIT_REF`; zwykły ręczny deploy bez payloadu nie zostanie opublikowany. Jeśli w trakcie kolejki pojawi się nowszy commit, niezgodny build zakończy się błędem zamiast opublikować niesprawdzony kod.
 
 Render dostaje dokładny SHA przez `ref`. Zielony **Deploy** oznacza przyjęcie żądań buildów, nie zakończenie publikacji — końcowy status i commit sprawdź w Renderze i Netlify. Hooki nie zapewniają atomowego wdrożenia obu usług; jeśli jedna zawiedzie, sprawdź logi przed ponowieniem. URL-e hooków są sekretami: nie dodawaj ich do `.env.example`, repo ani wiadomości.
 
