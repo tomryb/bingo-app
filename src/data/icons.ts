@@ -1,0 +1,30 @@
+export const ICONS = {
+  tree: "🎄",
+  star: "⭐",
+  snowflake: "❄️",
+  santa: "🎅",
+  bell: "🔔",
+  candle: "🕯️",
+  gift: "🎁",
+  reindeer: "🦌",
+  cookie: "🍪",
+  scarf: "🧣",
+  sparkle: "✨",
+  trophy: "🏆",
+  wave: "👋",
+  celebration: "🎉",
+  check: "✓",
+} as const;
+
+export const TILE_ICONS = [
+  ICONS.tree,
+  ICONS.star,
+  ICONS.snowflake,
+  ICONS.santa,
+  ICONS.bell,
+  ICONS.candle,
+  ICONS.gift,
+  ICONS.reindeer,
+  ICONS.cookie,
+  ICONS.scarf,
+] as const;

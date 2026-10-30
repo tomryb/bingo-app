@@ -1,6 +1,6 @@
-import type { BoardSize } from "../types/bingo";
+import type { BoardSize } from "../types/bingo.js";
 
-export function checkBingo(selected: boolean[], size: BoardSize): boolean {
+function buildLines(size: BoardSize): number[][] {
   const lines: number[][] = [];
 
   for (let r = 0; r < size; r++) {
@@ -14,5 +14,18 @@ export function checkBingo(selected: boolean[], size: BoardSize): boolean {
   lines.push([...Array(size)].map((_, i) => i * size + i));
   lines.push([...Array(size)].map((_, i) => i * size + (size - i - 1)));
 
-  return lines.some((line) => line.every((i) => selected[i]));
+  return lines;
+}
+
+// Returns the indices of the first fully-selected line, or null if none.
+export function findBingoLine(
+  selected: boolean[],
+  size: BoardSize,
+): number[] | null {
+  const line = buildLines(size).find((line) => line.every((i) => selected[i]));
+  return line ?? null;
+}
+
+export function checkBingo(selected: boolean[], size: BoardSize): boolean {
+  return findBingoLine(selected, size) !== null;
 }

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.ts"
+    "test": "node --import tsx --test board.test.ts notificationFeedback.test.mjs gameFlow.test.mjs",
+    "start": "tsx index.ts",
+    "dev": "nodemon --exec tsx index.ts"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +14,13 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.2.1",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "tsx": "^4.20.6"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
     "nodemon": "^3.1.11",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }

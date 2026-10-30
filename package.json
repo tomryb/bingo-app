@@ -7,10 +7,25 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b && tsc -p server/tsconfig.json",
+    "deps:check": "npm run deps:check:frontend && npm run deps:check:backend",
+    "deps:check:frontend": "ncu --packageFile package.json",
+    "deps:check:backend": "cd server && ncu --packageFile package.json",
+    "deps:update": "npm run deps:update:frontend && npm run deps:update:backend",
+    "deps:update:frontend": "ncu --packageFile package.json -u && npm install",
+    "deps:update:backend": "cd server && ncu --packageFile package.json -u && npm install",
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{ts,tsx,js,cjs,mjs,json,css,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "mitt": "^3.0.1",
@@ -22,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -31,6 +47,9 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "npm-check-updates": "^23.1.1",
     "postcss": "^8.4.24",
     "prettier": "^3.8.3",
     "typescript": "~5.9.3",
