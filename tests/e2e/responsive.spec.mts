@@ -34,12 +34,17 @@ async function expectLayoutFits(page: Page) {
     });
   expect(overflow).toEqual([]);
 }
-
 for (const fontSize of [16, 32]) {
   test(`lobby, board and summary fit narrow screens with ${fontSize}px root text`, async ({
     page,
   }) => {
     await page.goto("/");
+    await expect(page.getByLabel(UI.roomLabel, { exact: true })).toHaveValue(
+      "",
+    );
+    await expect(
+      page.getByLabel(UI.roomLabel, { exact: true }),
+    ).toHaveAttribute("placeholder", UI.roomPlaceholder);
     if (
       await page
         .getByRole("button", { name: NOTIFICATION_UI.vibrationOff })

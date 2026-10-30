@@ -1,6 +1,37 @@
 import { expect, test } from "@playwright/test";
 import { UI } from "../../src/data/uiTexts.ts";
 
+test("preferences survive reload but not reopening a closed tab", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.setItem("bingo:userName", "Old name");
+    localStorage.setItem("bingo:roomId", "old-room");
+  });
+  await page.reload();
+  await expect(page.getByLabel(UI.nameLabel)).toHaveValue("");
+  await expect(page.getByLabel(UI.roomLabel, { exact: true })).toHaveValue("");
+  await page.getByLabel(UI.nameLabel).fill("Zosia");
+  await page.getByLabel(UI.roomLabel, { exact: true }).fill("session-room");
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem("bingo:roomId")))
+    .toBe("session-room");
+  await page.reload();
+  await expect(page.getByLabel(UI.nameLabel)).toHaveValue("Zosia");
+  await expect(page.getByLabel(UI.roomLabel, { exact: true })).toHaveValue(
+    "session-room",
+  );
+  await page.close();
+  const reopened = await context.newPage();
+  await reopened.goto("/");
+  await expect(reopened.getByLabel(UI.nameLabel)).toHaveValue("");
+  await expect(reopened.getByLabel(UI.roomLabel, { exact: true })).toHaveValue(
+    "",
+  );
+});
+
 test("blocked preference reads do not stop a player joining", async ({
   page,
 }) => {

@@ -4,7 +4,7 @@ Prosta multiplayerowa gra w **świąteczne (bożonarodzeniowe)** Bingo — gracz
 
 ## Zagraj
 
-Otwórz [Świąteczne Bingo](https://holiday-bingo-app.netlify.app/), wpisz imię i nazwę pokoju. Pozostali gracze otwierają tę samą aplikację i wpisują dokładnie tę samą nazwę pokoju oraz własne, różne imiona. Przycisk „Kopiuj nazwę pokoju” ułatwia przekazanie nazwy rodzinie.
+Otwórz [Świąteczne Bingo](https://holiday-bingo-app.netlify.app/), wpisz nazwę gracza (imię lub pseudonim) i nazwę pokoju. Pozostali gracze otwierają tę samą aplikację i wpisują dokładnie tę samą nazwę pokoju oraz własne, różne nazwy graczy. Przycisk „Kopiuj nazwę pokoju” ułatwia przekazanie nazwy rodzinie.
 
 Pokoje nie mają haseł ani kontroli dostępu — nazwa pokoju nie jest zabezpieczeniem. Odświeżenie strony lub utrata połączenia oznacza ponowne dołączenie i nową planszę. Restart backendu usuwa wszystkie pokoje.
 
@@ -58,7 +58,8 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - Po wyjściu lub wykrytym rozłączeniu serwer usuwa planszę i zaznaczenia tej osoby; powrót oznacza nową planszę z pustymi zaznaczeniami. Nie zmienia to plansz pozostałych osób. Wyniki już zakończonej rundy pozostają w podsumowaniu jako zapis finału. Po wyjściu ostatniej osoby pokój jest usuwany.
 - Lista graczy rozpoznaje osoby po ID połączenia. Imię musi być unikalne wśród obecnych graczy w danym pokoju (bez rozróżniania wielkości liter i skrajnych spacji). Zajęte imię powoduje odmowę dołączenia z sugestią dopisania liczby. Wyjście lub wykryte rozłączenie zwalnia imię; w innym pokoju można używać tego samego imienia.
 - Dołączanie ma limit 8 sekund. Brak potwierdzenia odblokowuje formularz; spóźnione odpowiedzi poprzedniej próby nie zastępują nowej sesji.
-- Niedostępny localStorage nie blokuje gry: preferencje pozostają w pamięci, a interfejs informuje o braku trwałego zapisu.
+- Imię, pokój i rozmiar są zapisywane w `sessionStorage` danej karty, nie w `localStorage`. Odświeżenie zachowuje preferencje; zwykła nowa karta zaczyna z pustym imieniem i pokojem. Przywracanie sesji lub duplikowanie karty przez przeglądarkę może zachować dane. Stare wpisy w `localStorage` nie są odczytywane.
+- Niedostępny `sessionStorage` nie blokuje gry: preferencje pozostają w pamięci React, a interfejs informuje o braku zapisu.
 - Zmiana widoku przenosi fokus na jego nagłówek.
 
 ## Jakość kodu
@@ -76,7 +77,7 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - `npm run test:frontend` — 11 testów jednostkowych w `tests/unit/`: sygnały, walidacja przydziału planszy i kontrola commita wdrażanego na Netlify. Nie są to testy interfejsu w przeglądarce.
 - `npm run test:backend` lub `npm test --prefix server` — 16 testów w `server/tests/`: losowanie, wspólne reguły/dane gry i integracja Socket.IO, w tym zajęte imiona, nieprawidłowe komunikaty, błędne/spóźnione ruchy, równoczesne BINGO i rozłączenia.
 - `npm run test:e2e:install` — pobranie Chromium, Firefox i WebKit do Playwright (ponów po aktualizacji Playwright); na Linux CI może być potrzebne `npx playwright install --with-deps chromium firefox webkit`.
-- `npm run test:e2e` — 10 scenariuszy w 5 projektach (50 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, adresy bez `#`, fokus, localStorage, blokowanie zajętych imion, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
+- `npm run test:e2e` — 11 scenariuszy w 5 projektach (55 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, adresy bez `#`, fokus, sessionStorage (odświeżenie, nowa karta i błędy zapisu/odczytu), blokowanie zajętych imion, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
 - `npm run test:all` — testy jednostkowe/integracyjne oraz E2E.
 - Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC, CSS, Markdown i YAML dodanych do staging area, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
 - Biome ma konfigurację w `biome.json` i pomija pliki ignorowane przez Git oraz lockfile. Markdown nie jest objęty skonfigurowanym formatowaniem.
