@@ -78,7 +78,7 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - `npm run test:e2e:install` — pobranie Chromium, Firefox i WebKit do Playwright (ponów po aktualizacji Playwright); na Linux CI może być potrzebne `npx playwright install --with-deps chromium firefox webkit`.
 - `npm run test:e2e` — 10 scenariuszy w 5 projektach (50 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, adresy bez `#`, fokus, localStorage, blokowanie zajętych imion, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
 - `npm run test:all` — testy jednostkowe/integracyjne oraz E2E.
-- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla zmienionych plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC i CSS, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
+- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC, CSS, Markdown i YAML dodanych do staging area, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
 - Biome ma konfigurację w `biome.json` i pomija pliki ignorowane przez Git oraz lockfile. Markdown nie jest objęty skonfigurowanym formatowaniem.
 
 Playwright sam uruchamia i zatrzymuje backend oraz Vite na testowych portach **3199** i **5189**.
@@ -189,12 +189,12 @@ Backend nie wczytuje automatycznie `server/.env`. Ustaw `PORT` w środowisku pro
 
 Zmienne Netlify z dostępem podczas **Builds / Production** (wartości ustaw w panelu, nie zapisuj konfiguracji konkretnego wdrożenia w README):
 
-| Zmienna | Wartość |
-| --- | --- |
-| `VITE_SERVER_URL` | Publiczny adres HTTPS własnego backendu Socket.IO |
-| `NODE_VERSION` | Wersja Node zgodna z projektem |
-| `HUSKY` | Ustawienie wyłączające hooki podczas instalacji na hostingu |
-| `NPM_FLAGS` | Flagi zapewniające instalację devDependencies potrzebnych do builda |
+| Zmienna           | Wartość                                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| `VITE_SERVER_URL` | Publiczny adres HTTPS własnego backendu Socket.IO                   |
+| `NODE_VERSION`    | Wersja Node zgodna z projektem                                      |
+| `HUSKY`           | Ustawienie wyłączające hooki podczas instalacji na hostingu         |
+| `NPM_FLAGS`       | Flagi zapewniające instalację devDependencies potrzebnych do builda |
 
 Wartości wpisuj bez cudzysłowów. Na Renderze `PORT` jest ustawiany automatycznie; żadna z powyższych zmiennych frontendu nie jest wymagana przez backend. Wersję Node na Renderze można przypiąć osobno przez `NODE_VERSION`.
 
