@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { BoardAssignment } from "../types/bingo";
-import { socket } from "../socket";
-import { findBingoLine } from "../utils/checkBingo";
 import { ICONS, TILE_ICONS } from "../data/icons";
 import { UI } from "../data/uiTexts";
+import { socket } from "../socket";
+import type { BoardAssignment } from "../types/bingo";
+import { findBingoLine } from "../utils/checkBingo";
 
 interface BingoBoardProps {
   board: BoardAssignment;

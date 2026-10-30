@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --import tsx --test board.test.ts notificationFeedback.test.mjs gameFlow.test.mjs",
+    "test": "node --import tsx --test tests/board.test.ts tests/gameFlow.test.mts",
     "start": "tsx index.ts",
     "dev": "nodemon --exec tsx index.ts"
   },
@@ -12,15 +12,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^5.2.1",
-    "socket.io": "^4.8.3",
-    "tsx": "^4.20.6"
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "socket.io": "^4.8.4",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.0.3",
-    "nodemon": "^3.1.11",
-    "typescript": "^5.9.3"
+    "@types/node": "^26.6.6",
+    "nodemon": "^3.1.14",
+    "typescript": "~7.0.2"
   }
 }

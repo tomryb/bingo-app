@@ -1,11 +1,12 @@
 import type { FormEvent } from "react";
+import { BOARD_SIZE_LABELS, BOARD_SIZES } from "../data/boardSizes";
 import { ICONS } from "../data/icons";
-import { UI } from "../data/uiTexts";
 import { STEPS } from "../data/instructions";
-import { BOARD_SIZES, BOARD_SIZE_LABELS } from "../data/boardSizes";
-import { AVAILABLE_SIZES } from "../utils/boardAssignment";
+import { UI } from "../data/uiTexts";
 import type { useLobbyPreferences } from "../hooks/useLobbyPreferences";
 import type { useRoomPreview } from "../hooks/useRoomPreview";
+import { MAX_PLAYER_NAME_LENGTH, MAX_ROOM_NAME_LENGTH } from "../shared/limits";
+import { AVAILABLE_SIZES } from "../utils/boardAssignment";
 
 interface LobbyPageProps {
   preferences: ReturnType<typeof useLobbyPreferences>;
@@ -44,7 +45,7 @@ export default function LobbyPage({
       <main className="landing">
         <section className="hero">
           <span className="eyebrow">{UI.heroEyebrow}</span>
-          <h1>
+          <h1 tabIndex={-1}>
             {UI.heroTitle}
             <br />
             {UI.heroSubtitle} <em>{UI.bingo}</em>
@@ -68,7 +69,7 @@ export default function LobbyPage({
               onChange={(e) => setUserName(e.target.value)}
               placeholder={UI.namePlaceholder}
               required
-              maxLength={40}
+              maxLength={MAX_PLAYER_NAME_LENGTH}
               autoComplete="nickname"
               disabled={joining}
             />
@@ -80,18 +81,14 @@ export default function LobbyPage({
               onChange={(e) => setRoomId(e.target.value)}
               placeholder={UI.roomPlaceholder}
               required
-              maxLength={80}
+              maxLength={MAX_ROOM_NAME_LENGTH}
               disabled={joining}
             />
           </label>
           <p className="size-label" id="size-label">
             {UI.sizeLabel}
           </p>
-          <div
-            className="size-options"
-            role="group"
-            aria-labelledby="size-label"
-          >
+          <fieldset className="size-options" aria-labelledby="size-label">
             {BOARD_SIZES.map((s) => (
               <button
                 className="size-option"
@@ -111,7 +108,7 @@ export default function LobbyPage({
                 <small>{BOARD_SIZE_LABELS[s]}</small>
               </button>
             ))}
-          </div>
+          </fieldset>
           <p className="card-note" role="status">
             {roomStatus}
           </p>

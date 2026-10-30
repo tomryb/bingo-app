@@ -16,9 +16,9 @@ export default function AppLayout({ connected, children }: AppLayoutProps) {
         toastOptions={{
           duration: 3500,
           style: {
-            background: "#fff9ee",
-            color: "#173c30",
-            border: "1px solid #efcb83",
+            background: "var(--cream)",
+            color: "var(--ink)",
+            border: "1px solid var(--gold)",
             borderRadius: "12px",
           },
         }}

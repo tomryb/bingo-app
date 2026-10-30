@@ -1,0 +1,31 @@
+.notification-controls {
+  margin: 1.5rem 0;
+  padding: 1.125rem;
+  border: 1px solid #efcb8340;
+  border-radius: 1rem;
+}
+.notification-controls h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--gold);
+}
+.notification-controls p {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+.notification-actions .secondary-button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.notification-actions [aria-pressed="true"] {
+  border-color: var(--gold);
+  background: #efcb8320;
+}

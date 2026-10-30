@@ -1,0 +1,130 @@
+.app-shell {
+  min-height: 100vh;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: Keep the viewport fallback for browsers without dynamic viewport units. */
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 85% 12%, #33715a55, transparent 45%),
+    radial-gradient(ellipse at 4% 85%, #a62e3630, transparent 45%),
+    linear-gradient(140deg, #123f34, #092d27 55%, #09251f);
+  position: relative;
+}
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: radial-gradient(#fff8e9 1px, transparent 1px);
+  background-size: 37px 37px;
+  mask-image: linear-gradient(#000, transparent 80%);
+}
+.page-wrap {
+  max-width: 75rem;
+  margin: auto;
+  padding: 1.75rem 2rem 1.25rem;
+  position: relative;
+  padding-left: max(2rem, env(safe-area-inset-left));
+  padding-right: max(2rem, env(safe-area-inset-right));
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+}
+.topbar {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #efcb8329;
+}
+.brand {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  gap: 0.75rem;
+}
+.brand > div {
+  min-width: 0;
+}
+.brand-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  background: #ffffff0b;
+  border: 1px solid #efcb8340;
+  border-radius: 0.9375rem;
+  font-size: 1.875rem;
+}
+.brand strong {
+  display: block;
+  font-size: 1.1875rem;
+  letter-spacing: -0.03125rem;
+}
+.brand small {
+  display: block;
+  color: var(--gold);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1875rem;
+  margin-top: 0.1875rem;
+}
+.connection {
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.status-dot {
+  flex-shrink: 0;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: #e5ae71;
+  border-radius: 50%;
+}
+.connection.is-connected .status-dot {
+  background: #8ed3a0;
+  box-shadow: 0 0 0 4px #8ed3a014;
+}
+.page-footer {
+  text-align: center;
+  color: #a4bbad;
+  font-size: 0.6875rem;
+  padding: 1.4375rem 0 0.75rem;
+  letter-spacing: 0.03125rem;
+}
+@media (max-width: 40em) {
+  .page-wrap {
+    padding: 1.125rem 1rem 0.75rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  .brand strong {
+    font-size: 1rem;
+  }
+  .brand small {
+    font-size: 0.5rem;
+    letter-spacing: 0.125rem;
+  }
+  .brand-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.625rem;
+  }
+  .connection {
+    font-size: 0.625rem;
+    max-width: 6.25rem;
+  }
+  .topbar {
+    padding-bottom: 1.125rem;
+  }
+}
+@media (max-width: 23.375em) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .connection {
+    max-width: none;
+    font-size: 0.6875rem;
+  }
+}

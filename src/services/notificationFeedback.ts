@@ -1,7 +1,7 @@
 import {
   FEEDBACK_SIGNALS,
-  NOTIFICATION_UI,
   type FeedbackKind,
+  NOTIFICATION_UI,
 } from "../data/notificationFeedback";
 
 export interface FeedbackOutput {
@@ -46,7 +46,8 @@ class BrowserFeedbackOutput implements FeedbackOutput {
 
   async unlockSound() {
     if (!this.supportsSound) throw new Error(NOTIFICATION_UI.soundUnsupported);
-    const context = (this.context ??= new AudioContext());
+    this.context ??= new AudioContext();
+    const context = this.context;
     await context.resume();
     if (context.state !== "running")
       throw new Error(NOTIFICATION_UI.soundError);
@@ -54,7 +55,7 @@ class BrowserFeedbackOutput implements FeedbackOutput {
 
   playSound(kind: FeedbackKind) {
     const context = this.context;
-    if (!context || context.state !== "running")
+    if (context?.state !== "running")
       throw new Error(NOTIFICATION_UI.soundError);
     this.stopSound();
     for (const note of FEEDBACK_SIGNALS[kind].notes) {

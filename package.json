@@ -6,54 +6,54 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "clean": "node scripts/clean.mjs",
+    "verify": "npm run check && npm run typecheck",
+    "verify:fix": "npm run format && npm run typecheck",
     "typecheck": "tsc -b && tsc -p server/tsconfig.json",
+    "check": "biome check . --error-on-warnings",
+    "check:fix": "biome check . --write --error-on-warnings",
+    "lint": "biome lint . --error-on-warnings",
+    "lint:fix": "biome lint . --write --error-on-warnings",
+    "format": "npm run check:fix",
+    "format:check": "biome format . --error-on-warnings",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "node --import tsx --test tests/unit/*.test.mts",
+    "test:backend": "npm test --prefix server",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium firefox webkit",
+    "test:all": "npm test && npm run test:e2e",
     "deps:check": "npm run deps:check:frontend && npm run deps:check:backend",
     "deps:check:frontend": "ncu --packageFile package.json",
     "deps:check:backend": "cd server && ncu --packageFile package.json",
     "deps:update": "npm run deps:update:frontend && npm run deps:update:backend",
     "deps:update:frontend": "ncu --packageFile package.json -u && npm install",
     "deps:update:backend": "cd server && ncu --packageFile package.json -u && npm install",
-    "lint": "eslint .",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check",
-    "preview": "vite preview",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix"
-    ],
-    "*.{ts,tsx,js,cjs,mjs,json,css,md}": [
-      "prettier --write"
+    "*.{ts,tsx,mts,cts,js,jsx,cjs,mjs,json,jsonc,css}": [
+      "biome check --write --error-on-warnings --no-errors-on-unmatched"
     ]
   },
   "dependencies": {
-    "mitt": "^3.0.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-hot-toast": "^2.6.0",
-    "socket.io-client": "^4.7.2",
-    "tailwindcss": "^4.1.18"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hot-toast": "^2.6.1",
+    "socket.io-client": "^4.8.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.14",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
+    "@biomejs/biome": "^2.6.4",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "npm-check-updates": "^23.1.1",
-    "postcss": "^8.4.24",
-    "prettier": "^3.8.3",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "tsx": "^4.23.15",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.5"
   }
 }

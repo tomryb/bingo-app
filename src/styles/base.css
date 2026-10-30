@@ -1,0 +1,120 @@
+:root {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #fff8e9;
+  background: #092d27;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --gold: #efcb83;
+  --muted: #b7ccc2;
+  --cream: #fff9ee;
+  --ink: #173c30;
+  --primary: #af3548;
+  --primary-hover: #982c3e;
+  --primary-border: #8e2436;
+  --primary-shadow: #7b2333;
+  --panel-background: #ffffff07;
+  --panel-border: #efcb8330;
+  --field-border: #d6ddce;
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+ul,
+ol {
+  list-style: none;
+}
+img,
+svg {
+  display: block;
+  vertical-align: middle;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+small {
+  font-size: 80%;
+}
+strong {
+  font-weight: bolder;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+input {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background-color: transparent;
+  border-radius: 0;
+  opacity: 1;
+  min-width: 0;
+}
+button,
+input:where([type="button"], [type="reset"], [type="submit"]) {
+  appearance: button;
+}
+::placeholder {
+  opacity: 1;
+  color: color-mix(in oklab, currentcolor 50%, transparent);
+}
+[hidden]:not([hidden="until-found"]) {
+  display: none;
+}
+h1,
+h2,
+button {
+  overflow-wrap: anywhere;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+button,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  touch-action: manipulation;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: Reduced motion must override component styles. */
+    transition: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: Reduced motion must override component styles. */
+    scroll-behavior: auto !important;
+  }
+}

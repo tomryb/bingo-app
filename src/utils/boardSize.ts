@@ -1,6 +1,5 @@
-import type { BoardSize } from "../types/bingo";
-
 import { BOARD_SIZES } from "../data/boardSizes.js";
+import type { BoardSize } from "../types/bingo";
 
 // A size is buildable only if there are enough texts to fill every cell.
 export function isBoardSizeAvailable(

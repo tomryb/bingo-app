@@ -1,16 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { FEEDBACK_SIGNALS } from "../../src/data/notificationFeedback.ts";
 import {
-  NotificationFeedback,
   FeedbackError,
-} from "../src/services/notificationFeedback.ts";
-import { FEEDBACK_SIGNALS } from "../src/data/notificationFeedback.ts";
-import { isValidBoardAssignment } from "../src/utils/boardAssignment.ts";
-import texts from "../src/data/texts.ts";
-import { TEXTS_VERSION } from "../src/textsVersion.ts";
+  type FeedbackOutput,
+  NotificationFeedback,
+} from "../../src/services/notificationFeedback.ts";
 
-function createOutput(overrides = {}) {
-  const calls = [];
+function createOutput(overrides: Partial<FeedbackOutput> = {}) {
+  const calls: (string | number[])[] = [];
   return {
     calls,
     supportsSound: true,
@@ -19,11 +17,13 @@ function createOutput(overrides = {}) {
     unlockSound: async () => {
       calls.push("unlock");
     },
-    playSound: (kind) => calls.push(kind),
+    playSound: (kind: "mark" | "win") => {
+      calls.push(kind);
+    },
     stopSound: () => {
       calls.push("stop");
     },
-    vibrate: (pattern) => {
+    vibrate: (pattern: readonly number[]) => {
       calls.push([...pattern]);
       return true;
     },
@@ -101,6 +101,7 @@ test("failed audio unlock never enables automatic sound", async () => {
     (error) =>
       error instanceof FeedbackError &&
       error.channel === "sound" &&
+      error.cause instanceof Error &&
       error.cause.message === "blocked",
   );
   output.calls.length = 0;
@@ -124,6 +125,7 @@ test("audio playback errors are surfaced with the sound channel", async () => {
   const [error] = feedback.signal("mark");
   assert.ok(error instanceof FeedbackError);
   assert.equal(error.channel, "sound");
+  assert.ok(error.cause instanceof Error);
   assert.equal(error.cause.message, "suspended");
 });
 
@@ -138,7 +140,9 @@ test("failure of one signal does not suppress the other", async () => {
   };
   assert.equal(feedback.signal("win")[0].channel, "sound");
   assert.deepEqual(output.calls, [[...FEEDBACK_SIGNALS.win.vibration]]);
-  output.playSound = (kind) => output.calls.push(kind);
+  output.playSound = (kind) => {
+    output.calls.push(kind);
+  };
   output.vibrate = () => false;
   output.calls.length = 0;
   assert.equal(feedback.signal("win")[0].channel, "vibration");
@@ -146,16 +150,17 @@ test("failure of one signal does not suppress the other", async () => {
 });
 
 test("disposing during audio unlock cannot re-enable playback", async () => {
-  let unlock;
+  let unlock: (() => void) | undefined;
   const output = createOutput({
     unlockSound: () =>
-      new Promise((resolve) => {
+      new Promise<void>((resolve) => {
         unlock = resolve;
       }),
   });
   const feedback = new NotificationFeedback(output);
   const enabling = feedback.enableSound();
   await feedback.dispose();
+  assert.ok(unlock);
   unlock();
   assert.equal(await enabling, false);
   output.calls.length = 0;
@@ -177,32 +182,4 @@ test("stop and dispose cancel output and reset opt-ins", async () => {
   assert.deepEqual(output.calls, []);
   await feedback.enableSound();
   assert.deepEqual(output.calls, ["unlock", "mark"]);
-});
-
-test("board assignments reject duplicates, unknown texts and outdated versions", () => {
-  const board = {
-    roomId: "test",
-    roundId: "round",
-    size: 3,
-    boardTexts: texts.slice(0, 9),
-    textsVersion: TEXTS_VERSION,
-  };
-  assert.equal(isValidBoardAssignment(board), true);
-  assert.equal(
-    isValidBoardAssignment({ ...board, textsVersion: "old" }),
-    false,
-  );
-  assert.equal(isValidBoardAssignment({ ...board, roundId: "" }), false);
-  assert.equal(
-    isValidBoardAssignment({ ...board, boardTexts: Array(9).fill(texts[0]) }),
-    false,
-  );
-  assert.equal(
-    isValidBoardAssignment({
-      ...board,
-      boardTexts: [...texts.slice(0, 8), "unknown"],
-    }),
-    false,
-  );
-  assert.equal(isValidBoardAssignment({ ...board, size: 4 }), false);
 });

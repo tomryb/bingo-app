@@ -28,7 +28,9 @@ export default function SummaryPage({
           {ICONS.trophy}
         </span>
         <span className="eyebrow">{UI.summaryEyebrow}</span>
-        <h1 id="summary-title">{UI.summaryTitle}</h1>
+        <h1 id="summary-title" tabIndex={-1}>
+          {UI.summaryTitle}
+        </h1>
         <p className="summary-winner">
           {playerMessage(summary.winner.user, "win")}!
         </p>
@@ -54,10 +56,19 @@ export default function SummaryPage({
           {UI.readinessPrefix} {readiness.ready.length} /{" "}
           {readiness.members.length}. {UI.readinessNote}
         </p>
-        <button className="primary-button" disabled={ready} onClick={onRestart}>
+        <button
+          type="button"
+          className="primary-button"
+          disabled={ready}
+          onClick={onRestart}
+        >
           {ready ? UI.waiting : UI.replay}
         </button>
-        <button className="secondary-button summary-leave" onClick={onLeave}>
+        <button
+          type="button"
+          className="secondary-button summary-leave"
+          onClick={onLeave}
+        >
           {UI.leaveRoom}
         </button>
       </section>

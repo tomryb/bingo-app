@@ -35,8 +35,9 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - `src/components/` — osobne widoki lobby, gry, podsumowania i ustawień sygnałów
 - `src/hooks/` — sesja Socket.IO, podgląd pokoju, preferencje, adres widoku i sterowanie sygnałami
 - `src/services/notificationFeedback.ts` — Web Audio i opcjonalne wibracje, bez systemowego push
-- `src/index.css` — główne style (Tailwind)
-- `server/index.ts` — serwer Socket.IO obsługujący pokoje i zdarzenia
+- `src/index.css` — importy zwykłego CSS z `src/styles/`: baza, wspólne elementy, layout, lobby, gra, podsumowanie i powiadomienia; bez Tailwinda
+- `src/shared/limits.ts` — wspólne limity długości imienia i pokoju dla formularza i backendu
+- `server/index.ts` — uruchomienie serwera; logika gry i walidacja żądań są w osobnych modułach backendu
 
 ## Rundy i podsumowanie
 
@@ -47,14 +48,51 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - „Zagrajmy ponownie” oznacza gotowość. Gdy wszyscy obecni ją potwierdzą, serwer losuje nowe plansze, zeruje zaznaczenia i przenosi wszystkich na `#/gra`.
 - Osoba dołączająca po finale widzi podsumowanie i może potwierdzić gotowość. Wyjście lub rozłączenie usuwa ją z oczekujących na rewanż.
 - Po wyjściu lub wykrytym rozłączeniu serwer usuwa planszę i zaznaczenia tej osoby; powrót oznacza nową planszę z pustymi zaznaczeniami. Nie zmienia to plansz pozostałych osób. Wyniki już zakończonej rundy pozostają w podsumowaniu jako zapis finału. Po wyjściu ostatniej osoby pokój jest usuwany.
+- Lista graczy rozpoznaje osoby po ID połączenia, nie imieniu; identyczne imiona są dozwolone.
+- Dołączanie ma limit 8 sekund. Brak potwierdzenia odblokowuje formularz; spóźnione odpowiedzi poprzedniej próby nie zastępują nowej sesji.
+- Niedostępny localStorage nie blokuje gry: preferencje pozostają w pamięci, a interfejs informuje o braku trwałego zapisu.
+- Zmiana widoku przenosi fokus na jego nagłówek.
 
 ## Jakość kodu
 
-- `npm run format` / `npm run format:check` — Prettier
-- `npm run lint` — ESLint
-- `npm run typecheck` — TypeScript (frontend + `server/`)
-- `npm test --prefix server` — 19 testów plansz, BINGO, danych, opcjonalnych sygnałów i przepływu gry przez Socket.IO; wymagają zależności obu pakietów.
-- Pre-commit hook (Husky + lint-staged) automatycznie odpala ESLint i Prettier na zmienionych plikach przy każdym `git commit`.
+- `npm run lint` — tylko lintowanie przez Biome, w tym reguły hooków React; bez zapisu.
+- `npm run lint:fix` — bezpieczne poprawki lintowania.
+- `npm run check` — lint, formatowanie i importy przez Biome, bez zapisu i bez typecheck.
+- `npm run format` / `npm run check:fix` — lint, formatowanie i importy z bezpiecznymi poprawkami oraz zapisem.
+- `npm run format:check` — tylko kontrola formatowania, bez zapisu i lintowania.
+- `npm run verify` — Biome bez zapisu, następnie typecheck frontendu i backendu.
+- `npm run verify:fix` — Biome z bezpiecznymi poprawkami, następnie typecheck frontendu i backendu. Niepowodzenie pierwszego kroku zatrzymuje drugi.
+- Wszystkie komendy Biome oraz pre-commit używają `--error-on-warnings`; pozostałe błędy i ostrzeżenia kończą kontrolę niepowodzeniem.
+- `npm run typecheck` — TypeScript: frontend, backend oraz testy `.mts` przez `tsconfig.tests.json`.
+- `npm test` — 25 testów jednostkowych/integracyjnych, kolejno frontend i backend; wymagają zależności obu pakietów. Bez uruchamiania przeglądarki.
+- `npm run test:frontend` — 10 testów jednostkowych frontendu w `tests/unit/`: sygnały i walidacja przydziału planszy. Nie są to testy interfejsu w przeglądarce.
+- `npm run test:backend` lub `npm test --prefix server` — 15 testów w `server/tests/`: losowanie, wspólne reguły/dane gry i integracja Socket.IO, w tym nieprawidłowe komunikaty, błędne/spóźnione ruchy, równoczesne BINGO i rozłączenia.
+- `npm run test:e2e:install` — pobranie Chromium, Firefox i WebKit do Playwright (ponów po aktualizacji Playwright); na Linux CI może być potrzebne `npx playwright install --with-deps chromium firefox webkit`.
+- `npm run test:e2e` — 9 scenariuszy w 5 projektach (45 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, fokus, localStorage, jednakowe imiona, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
+- `npm run test:all` — testy jednostkowe/integracyjne oraz E2E.
+- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla zmienionych plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC i CSS, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
+- Biome ma konfigurację w `biome.json` i pomija pliki ignorowane przez Git oraz lockfile. Markdown nie jest objęty skonfigurowanym formatowaniem.
+
+Playwright sam uruchamia i zatrzymuje backend oraz Vite na testowych portach **3199** i **5189**.
+Porty muszą być wolne; test nie wykorzystuje istniejących serwerów ani pokoi.
+Konfiguracja znajduje się w `playwright.config.mts`; testy i konfiguracja E2E są objęte `typecheck`.
+Po niepowodzeniu ślad diagnostyczny trafia do ignorowanego `test-results/`.
+Testy jednostkowe są w `tests/unit/*.test.mts`, a przeglądarkowe w `tests/e2e/*.spec.mts`.
+WebKit sprawdza silnik Safari, a Chromium silnik używany m.in. przez Chrome i Edge — nie są to testy zainstalowanych, markowych przeglądarek ani prawdziwego iPhone'a.
+Wybrany silnik można uruchomić osobno, np. `npm run test:e2e -- --project=firefox`.
+Projekty mobilne: `--project=mobile-chromium` i `--project=mobile-webkit`; emulacja nie zastępuje testów na fizycznych telefonach.
+Testy RWD sprawdzają lobby, grę i podsumowanie przy szerokościach 320/390/768/1280 px oraz bazowym tekście 16/32 px.
+Style używają `rem` dla typografii i wymiarów zależnych od tekstu, `em` w breakpointach oraz `%`/`fr` dla płynnych układów. Cienkie obramowania i dekoracyjne efekty pozostają w px.
+Reset przeglądarkowy i tokeny kolorów są w `src/styles/base.css`; nie wymagają Tailwinda ani dodatkowej konfiguracji PostCSS.
+Workflow `.github/workflows/verify.yml` uruchamia kontrole, wszystkie testy i build na push/PR.
+
+### Czyszczenie plików generowanych
+
+`npm run clean` usuwa `dist/`, `dist-ssr/`, `coverage/`, `server/coverage/`,
+`test-results/`, `playwright-report/`, `blob-report/`, cache Vite (`node_modules/.vite/`,
+`node_modules/.vite-temp/`) oraz trzy pliki `tsconfig.*.tsbuildinfo` używane przez projekt w `node_modules/.tmp/`.
+Uruchamiaj po zatrzymaniu dev servera i testów; kolejne uruchomienia odtworzą potrzebne pliki.
+Komenda nie usuwa zależności, pobranych przeglądarek Playwright, plików `.env` ani lokalnych docs.
 
 ## Sprawdzanie aktualizacji zależności
 
@@ -79,7 +117,11 @@ Z katalogu głównego repo:
 Te komendy uruchamiają `ncu -u`, a następnie `npm install` dla wybranego pakietu:
 zmieniają wersje w manifestach, aktualizują lockfile i instalują zależności.
 Obejmują również wersje major, które mogą wprowadzać niekompatybilne zmiany.
-Po aktualizacji sprawdź różnice oraz uruchom `npm run typecheck`, `npm run lint`, `npm test --prefix server` i `npm run build`.
+Po aktualizacji sprawdź różnice oraz uruchom `npm run verify`, `npm test` i `npm run build`.
+
+Aktualny zestaw korzysta z React 19.3, Vite 8, Biome 2.6 i TypeScript 7.0.
+Biome zastępuje ESLint i Prettier; kontrolę typów nadal wykonuje TypeScript.
+Typy `@types/node` są obecnie w linii 26. Same typy nie aktualizują środowiska uruchomieniowego — dopasuj je do wersji Node lokalnie i na hostingu.
 
 ## Zmienne środowiskowe (.env)
 

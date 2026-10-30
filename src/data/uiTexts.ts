@@ -64,6 +64,11 @@ export const UI = {
     "Nieprawidłowa plansza. Odśwież stronę i sprawdź wersję serwera.",
   notEnoughTexts: "Za mało haseł na wybraną planszę.",
   joinError: "Nie udało się dołączyć. Odśwież stronę i sprawdź wersję serwera.",
+  joinTimeout: "Serwer nie potwierdził dołączenia. Spróbuj ponownie.",
+  requestRejected:
+    "Serwer odrzucił nieprawidłowe żądanie. Spróbuj ponownie lub odśwież stronę.",
+  storageUnavailable:
+    "Nie można zapisać ustawień w tej przeglądarce. Możesz grać, ale po odświeżeniu trzeba będzie wpisać je ponownie.",
   sizeAdjusted: (size: number) =>
     `Pokój ma planszę ${size}×${size}. Dopasowano rozmiar do pokoju.`,
   existingRoom: (size: number) =>

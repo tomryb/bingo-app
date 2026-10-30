@@ -1,9 +1,9 @@
-import type { RoundSummary } from "../types/bingo.js";
 import {
   FESTIVE_MESSAGES,
   SINGULAR_MESSAGES,
   SOLO_SUMMARY_MESSAGE,
 } from "../data/summaryMessages.js";
+import type { RoundSummary } from "../types/bingo.js";
 import { computeTextsVersion } from "./textsVersion.js";
 
 export function summaryMessage(summary: RoundSummary): string {

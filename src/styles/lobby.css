@@ -1,0 +1,231 @@
+.landing {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4rem;
+  align-items: center;
+  padding: 3.625rem 0 3rem;
+}
+.hero h1 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.625rem, 5vw, 4.125rem);
+  line-height: 1.08;
+  letter-spacing: -0.125rem;
+  margin: 1.125rem 0;
+}
+.hero h1 em {
+  color: var(--gold);
+}
+.hero-copy {
+  max-width: 24.375rem;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 0.9375rem;
+}
+.festive-scene {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.625rem 0 0.625rem;
+  max-width: 23.75rem;
+}
+.scene-tree {
+  font-size: 7rem;
+  filter: drop-shadow(0 10px 24px #0005);
+}
+.scene-gift {
+  font-size: 3.25rem;
+  transform: rotate(-10deg);
+}
+.scene-star {
+  font-size: 2.5rem;
+  align-self: flex-start;
+  margin-top: 1.5rem;
+}
+.join-card {
+  min-width: 0;
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid #efcb83;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 24px 70px #001c2440;
+  position: relative;
+}
+.join-card::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 30px;
+  right: 30px;
+  height: 0.4375rem;
+  border-radius: 0.25rem;
+  background: repeating-linear-gradient(
+    45deg,
+    #a43040 0 12px,
+    #fff4dc 12px 24px
+  );
+}
+.card-kicker {
+  color: #a43040;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.125rem;
+  font-weight: 700;
+}
+.join-card h2 {
+  font:
+    2rem Georgia,
+    serif;
+  margin: 0.625rem 0;
+}
+.card-intro {
+  color: #63766a;
+  font-size: 0.875rem;
+  margin: 0 0 1.5625rem;
+  line-height: 1.6;
+}
+.field {
+  display: block;
+  margin-top: 1.125rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+.field input {
+  font-size: 1rem;
+  display: block;
+  width: 100%;
+  background: #fffefa;
+  border: 1px solid var(--field-border);
+  border-radius: 0.625rem;
+  color: var(--ink);
+  margin-top: 0.5rem;
+  padding: 0.8125rem 0.9375rem;
+}
+.field input:focus {
+  border-color: #34745b;
+}
+.size-label {
+  font-weight: 650;
+  font-size: 0.8125rem;
+  margin: 1.4375rem 0 0.625rem;
+}
+.size-options {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5625rem;
+}
+.size-option {
+  border: 1px solid var(--field-border);
+  background: transparent;
+  border-radius: 0.625rem;
+  padding: 0.75rem 0.25rem;
+  color: #355347;
+}
+.size-option strong {
+  display: block;
+  font-size: 1.125rem;
+}
+.size-option small {
+  display: block;
+  font-size: 0.625rem;
+  margin-top: 0.1875rem;
+}
+.size-option[aria-pressed="true"] {
+  border-color: #246044;
+  background: #e4eddf;
+  box-shadow: inset 0 0 0 1px #246044;
+  color: #174b33;
+}
+.card-note {
+  margin: 1.0625rem 0 0;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: #65796c;
+  line-height: 1.6;
+}
+.form-error {
+  color: #a12e40;
+  font-size: 0.8125rem;
+  margin-top: 0.75rem;
+}
+.how-it-works {
+  border-top: 1px solid #efcb8329;
+  padding: 1.6875rem 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.75rem;
+}
+.how-step {
+  display: flex;
+  gap: 0.8125rem;
+  align-items: flex-start;
+}
+.step-icon {
+  display: grid;
+  place-items: center;
+  font-size: 1.5625rem;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  background: #ffffff08;
+  border: 1px solid #efcb8320;
+  border-radius: 0.8125rem;
+}
+.how-step h3 {
+  font-size: 0.8125rem;
+  margin: 0.125rem 0 0.375rem;
+  color: #f5dfb5;
+}
+.how-step p {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  margin: 0;
+}
+@media (max-width: 53.125em) {
+  .landing {
+    gap: 1.875rem;
+  }
+}
+@media (max-width: 40em) {
+  .landing {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.75rem 0;
+  }
+  .hero {
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.75rem;
+    margin: 0.75rem 0;
+  }
+  .hero-copy {
+    margin: 0 auto;
+    font-size: 0.8125rem;
+  }
+  .festive-scene {
+    display: none;
+  }
+  .join-card {
+    padding: 1.5625rem;
+    border-radius: 1.1875rem;
+  }
+  .field input {
+    min-height: 3rem;
+  }
+  .size-option,
+  .primary-button {
+    min-height: 3rem;
+  }
+  .how-it-works {
+    grid-template-columns: 1fr;
+    gap: 1.125rem;
+  }
+}

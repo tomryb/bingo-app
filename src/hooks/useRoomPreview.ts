@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { UI } from "../data/uiTexts";
 import { socket } from "../socket";
 import type { RoomInfo } from "../types/bingo";
-import { UI } from "../data/uiTexts";
 
 export function useRoomPreview(roomId: string, enabled: boolean) {
   const [info, setInfo] = useState<RoomInfo | null>(null);
@@ -10,6 +10,7 @@ export function useRoomPreview(roomId: string, enabled: boolean) {
   const [attempt, setAttempt] = useState(0);
   const normalizedRoomId = roomId.trim();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt intentionally restarts the subscription when the user retries.
   useEffect(() => {
     if (!enabled || !normalizedRoomId) return;
     let active = true;

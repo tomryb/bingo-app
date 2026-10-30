@@ -1,6 +1,6 @@
-import type { BoardAssignment } from "../types/bingo";
-import { TEXTS_VERSION } from "../textsVersion";
 import texts from "../data/texts";
+import { TEXTS_VERSION } from "../textsVersion";
+import type { BoardAssignment } from "../types/bingo";
 import { getAvailableBoardSizes } from "./boardSize";
 
 export const AVAILABLE_SIZES = getAvailableBoardSizes(new Set(texts).size);

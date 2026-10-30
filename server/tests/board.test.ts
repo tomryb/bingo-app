@@ -1,17 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import texts from "../src/data/texts";
-import { checkBingo } from "../src/utils/checkBingo";
-import { createBoard } from "./board";
-import { playerMessage } from "../src/shared/playerMessage";
-import { summaryMessage } from "../src/shared/summaryMessage";
-import type { RoundSummary } from "../src/types/bingo";
+import { BOARD_SIZE_LABELS, BOARD_SIZES } from "../../src/data/boardSizes";
+import { TILE_ICONS } from "../../src/data/icons";
 import {
   FESTIVE_MESSAGES,
   SINGULAR_MESSAGES,
-} from "../src/data/summaryMessages";
-import { TILE_ICONS } from "../src/data/icons";
-import { BOARD_SIZES, BOARD_SIZE_LABELS } from "../src/data/boardSizes";
+} from "../../src/data/summaryMessages";
+import texts from "../../src/data/texts";
+import { playerMessage } from "../../src/shared/playerMessage";
+import { summaryMessage } from "../../src/shared/summaryMessage";
+import type { RoundSummary } from "../../src/types/bingo";
+import { checkBingo } from "../../src/utils/checkBingo";
+import { createBoard } from "../board";
 
 const testTexts = Array.from({ length: 30 }, (_, i) => `Test ${i}`);
 

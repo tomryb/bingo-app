@@ -1,14 +1,14 @@
 import type { FormEvent } from "react";
 import AppLayout from "./components/AppLayout";
-import LobbyPage from "./components/LobbyPage";
 import GamePage from "./components/GamePage";
-import SummaryPage from "./components/SummaryPage";
+import LobbyPage from "./components/LobbyPage";
 import NotificationControls from "./components/NotificationControls";
-import { useLobbyPreferences } from "./hooks/useLobbyPreferences";
-import { useRoomPreview } from "./hooks/useRoomPreview";
+import SummaryPage from "./components/SummaryPage";
 import { useGameSession } from "./hooks/useGameSession";
+import { useLobbyPreferences } from "./hooks/useLobbyPreferences";
 import { useNotificationFeedback } from "./hooks/useNotificationFeedback";
 import { usePageLocation } from "./hooks/usePageLocation";
+import { useRoomPreview } from "./hooks/useRoomPreview";
 import { AVAILABLE_SIZES } from "./utils/boardAssignment";
 
 export default function App() {
@@ -54,6 +54,7 @@ export default function App() {
           board={session.board}
           userName={preferences.userName}
           players={session.players}
+          selfId={session.selfId}
           onLeave={session.leave}
         />
       )}

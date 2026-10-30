@@ -19,6 +19,7 @@ export interface RoomInfo {
 }
 
 export interface BoardAssignment {
+  joinRequestId?: string;
   roomId: string;
   size: BoardSize;
   boardTexts: string[];

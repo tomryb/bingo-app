@@ -6,7 +6,12 @@ import {
   useSyncExternalStore,
 } from "react";
 import { toast } from "react-hot-toast";
+import { ICONS } from "../data/icons";
+import type { FeedbackKind } from "../data/notificationFeedback";
+import { UI } from "../data/uiTexts";
+import { playerMessage } from "../shared/playerMessage";
 import { socket } from "../socket";
+import { TEXTS_VERSION } from "../textsVersion";
 import type {
   BoardAssignment,
   BoardSize,
@@ -14,12 +19,7 @@ import type {
   RoundSummary,
 } from "../types/bingo";
 import type { MarkNotification, RoundReadiness } from "../types/socket";
-import { TEXTS_VERSION } from "../textsVersion";
 import { isValidBoardAssignment } from "../utils/boardAssignment";
-import { playerMessage } from "../shared/playerMessage";
-import { ICONS } from "../data/icons";
-import { UI } from "../data/uiTexts";
-import type { FeedbackKind } from "../data/notificationFeedback";
 
 function subscribeConnection(onChange: () => void) {
   socket.on("connect", onChange);
@@ -46,7 +46,7 @@ export function useGameSession(
   );
   const [board, setBoard] = useState<BoardAssignment | null>(null);
   const [summary, setSummary] = useState<RoundSummary | null>(null);
-  const [players, setPlayers] = useState<string[]>([]);
+  const [players, setPlayers] = useState<PlayerIdentity[]>([]);
   const [readiness, setReadiness] = useState<
     Pick<RoundReadiness, "ready" | "members">
   >({
@@ -56,10 +56,18 @@ export function useGameSession(
   const [joining, setJoining] = useState(false);
   // Socket.IO may deliver the next event before React commits the previous update.
   const activeBoard = useRef<BoardAssignment | null>(null);
-  const pendingJoin = useRef<JoinRequest | null>(null);
+  const pendingJoin = useRef<(JoinRequest & { joinRequestId: string }) | null>(
+    null,
+  );
+  const joinTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearJoinTimer = useCallback(() => {
+    if (joinTimer.current !== null) clearTimeout(joinTimer.current);
+    joinTimer.current = null;
+  }, []);
   const roundFinished = useRef(false);
 
   const reset = useCallback(() => {
+    clearJoinTimer();
     activeBoard.current = null;
     pendingJoin.current = null;
     roundFinished.current = false;
@@ -68,7 +76,7 @@ export function useGameSession(
     setSummary(null);
     setPlayers([]);
     setReadiness({ ready: [], members: [] });
-  }, []);
+  }, [clearJoinTimer]);
 
   useEffect(() => {
     const onDisconnect = () => {
@@ -76,6 +84,7 @@ export function useGameSession(
       toast.error(UI.disconnected);
     };
     const onConnectError = () => {
+      clearJoinTimer();
       pendingJoin.current = null;
       setJoining(false);
       toast.error(UI.connectionError, { id: "connection-error" });
@@ -83,12 +92,18 @@ export function useGameSession(
     const onJoinAccepted = (assignment: BoardAssignment) => {
       const request = pendingJoin.current;
       if (
+        assignment.joinRequestId &&
+        assignment.joinRequestId !== request?.joinRequestId
+      )
+        return;
+      if (
         assignment.roomId !== (request?.roomId ?? activeBoard.current?.roomId)
       ) {
         socket.emit("leave-room", { roomId: assignment.roomId });
         return;
       }
       setJoining(false);
+      clearJoinTimer();
       if (!isValidBoardAssignment(assignment)) {
         socket.emit("leave-room", { roomId: assignment.roomId });
         reset();
@@ -106,14 +121,45 @@ export function useGameSession(
       setSummary(null);
       setReadiness({ ready: [], members: [] });
     };
-    const onJoinRejected = ({ reason }: { reason: string }) => {
+    const onJoinRejected = ({
+      reason,
+      joinRequestId,
+    }: {
+      reason: string;
+      joinRequestId?: string;
+    }) => {
+      if (joinRequestId && joinRequestId !== pendingJoin.current?.joinRequestId)
+        return;
+      clearJoinTimer();
       pendingJoin.current = null;
       setJoining(false);
       toast.error(
         reason === "not-enough-texts" ? UI.notEnoughTexts : UI.joinError,
       );
     };
-    const onRoomState = (state: { roomId: string; players: string[] }) => {
+    const onRequestRejected = ({
+      event,
+      joinRequestId,
+    }: {
+      event: string;
+      joinRequestId?: string;
+    }) => {
+      if (event === "join-room") {
+        if (
+          joinRequestId &&
+          joinRequestId !== pendingJoin.current?.joinRequestId
+        )
+          return;
+        clearJoinTimer();
+        pendingJoin.current = null;
+        setJoining(false);
+      }
+      toast.error(UI.requestRejected, { id: "request-rejected" });
+    };
+    const onRoomState = (state: {
+      roomId: string;
+      players: PlayerIdentity[];
+    }) => {
       if (state.roomId === activeBoard.current?.roomId)
         setPlayers(state.players);
     };
@@ -166,6 +212,7 @@ export function useGameSession(
     socket.on("connect_error", onConnectError);
     socket.on("join-accepted", onJoinAccepted);
     socket.on("join-rejected", onJoinRejected);
+    socket.on("request-rejected", onRequestRejected);
     socket.on("room-state", onRoomState);
     socket.on("round-ended", onRoundEnded);
     socket.on("round-ready", onRoundReady);
@@ -178,6 +225,7 @@ export function useGameSession(
       socket.off("connect_error", onConnectError);
       socket.off("join-accepted", onJoinAccepted);
       socket.off("join-rejected", onJoinRejected);
+      socket.off("request-rejected", onRequestRejected);
       socket.off("room-state", onRoomState);
       socket.off("round-ended", onRoundEnded);
       socket.off("round-ready", onRoundReady);
@@ -186,14 +234,15 @@ export function useGameSession(
       socket.off("user-left", onUserLeft);
       window.removeEventListener("beforeunload", leaveOnUnload);
     };
-  }, [onSizeAssigned, reset, signal]);
+  }, [onSizeAssigned, reset, signal, clearJoinTimer]);
 
   useEffect(
     () => () => {
+      clearJoinTimer();
       const roomId = activeBoard.current?.roomId ?? pendingJoin.current?.roomId;
       if (roomId) socket.emit("leave-room", { roomId });
     },
-    [],
+    [clearJoinTimer],
   );
 
   function join(request: JoinRequest) {
@@ -208,9 +257,19 @@ export function useGameSession(
       ...request,
       roomId: request.roomId.trim(),
       user: request.user.trim(),
+      joinRequestId: crypto.randomUUID(),
     };
     pendingJoin.current = normalized;
     setJoining(true);
+    joinTimer.current = setTimeout(() => {
+      if (pendingJoin.current?.joinRequestId !== normalized.joinRequestId)
+        return;
+      pendingJoin.current = null;
+      joinTimer.current = null;
+      setJoining(false);
+      socket.emit("leave-room", { roomId: normalized.roomId });
+      toast.error(UI.joinTimeout);
+    }, 8000);
     socket.emit("join-room", { ...normalized, textsVersion: TEXTS_VERSION });
   }
 

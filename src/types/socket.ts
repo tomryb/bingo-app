@@ -22,16 +22,22 @@ export interface MarkNotification {
 }
 
 export interface ServerToClientEvents {
+  "request-rejected": (error: {
+    event: string;
+    reason: string;
+    joinRequestId?: string;
+  }) => void;
   "room-info": (info: RoomInfo) => void;
   "join-accepted": (board: BoardAssignment) => void;
   "join-rejected": (error: {
+    joinRequestId?: string;
     reason: string;
     serverTextsVersion?: string;
   }) => void;
   "room-state": (state: {
     roomId: string;
     size: BoardSize;
-    players: string[];
+    players: PlayerIdentity[];
     textsVersion: string;
   }) => void;
   "round-ended": (summary: RoundSummary) => void;
@@ -52,6 +58,7 @@ export interface ClientToServerEvents {
   ) => void;
   "unwatch-room": () => void;
   "join-room": (request: {
+    joinRequestId?: string;
     roomId: string;
     size: BoardSize;
     user: string;

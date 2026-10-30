@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import {
+  type FeedbackKind,
+  NOTIFICATION_UI,
+} from "../data/notificationFeedback";
+import {
   FeedbackError,
   NotificationFeedback,
 } from "../services/notificationFeedback";
-import {
-  NOTIFICATION_UI,
-  type FeedbackKind,
-} from "../data/notificationFeedback";
 
 export function useNotificationFeedback() {
   const [service] = useState(() => new NotificationFeedback());
