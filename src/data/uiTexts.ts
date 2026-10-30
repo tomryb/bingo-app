@@ -1,6 +1,5 @@
 export const UI = {
   title: "Świąteczne Bingo",
-  pageTitle: "🎄 Świąteczne Bingo",
   summaryPageTitle: "Podsumowanie — Świąteczne Bingo",
   tagline: "Małe chwile, wielka radość",
   connected: "Połączeni świątecznie",

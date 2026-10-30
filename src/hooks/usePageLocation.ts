@@ -16,7 +16,7 @@ export function usePageLocation(
         ? "/"
         : `/${encodeURIComponent(roomId)}${hasSummary ? "/podsumowanie" : ""}`,
     );
-    document.title = hasSummary ? UI.summaryPageTitle : UI.pageTitle;
+    document.title = hasSummary ? UI.summaryPageTitle : UI.title;
     if (previousView.current !== view) {
       document.querySelector<HTMLElement>("main h1")?.focus();
       previousView.current = view;

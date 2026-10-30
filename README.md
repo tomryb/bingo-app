@@ -79,7 +79,7 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - `npm run test:e2e:install` — pobranie Chromium, Firefox i WebKit do Playwright (ponów po aktualizacji Playwright); na Linux CI może być potrzebne `npx playwright install --with-deps chromium firefox webkit`.
 - `npm run test:e2e` — 11 scenariuszy w 5 projektach (55 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, adresy bez `#`, fokus, sessionStorage (odświeżenie, nowa karta i błędy zapisu/odczytu), blokowanie zajętych imion, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
 - `npm run test:all` — testy jednostkowe/integracyjne oraz E2E.
-- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC, CSS, Markdown i YAML dodanych do staging area, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
+- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC, CSS, Markdown, YAML i HTML dodanych do staging area, następnie pełny typecheck aplikacji i testów. Poprawki formatowania i bezpieczne poprawki lintowania są automatycznie dodawane do tego samego commita; nie trzeba wykonywać ponownego `git add` ani cofać commita. Wynik Biome jest widoczny także przy sukcesie. Pozostałe ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
 - Biome ma konfigurację w `biome.json` i pomija pliki ignorowane przez Git oraz lockfile. Markdown nie jest objęty skonfigurowanym formatowaniem.
 
 Playwright sam uruchamia i zatrzymuje backend oraz Vite na testowych portach **3199** i **5189**.
