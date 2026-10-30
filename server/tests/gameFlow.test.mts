@@ -168,6 +168,57 @@ function observe(client: TestSocket) {
   return { marks, summaries };
 }
 
+test("absolute marks acknowledge authoritative state and retries do not toggle or notify twice", async (t) => {
+  const connect = await startServer(t);
+  const first = await connect();
+  const second = await connect();
+  const roomId = "absolute-marks";
+  const board = await join(first, roomId, "A");
+  await join(second, roomId, "B");
+  const outsider = await connect();
+  const denied = await outsider.timeout(3000).emitWithAck("set-mark", {
+    roomId,
+    roundId: board.roundId,
+    index: 0,
+    marked: true,
+  });
+  assert.equal(denied.accepted, false);
+  assert.deepEqual(denied.selected, []);
+  const observed = observe(second);
+  const mark = (index: number, marked: boolean, roundId = board.roundId) =>
+    first
+      .timeout(3000)
+      .emitWithAck("set-mark", { roomId, roundId, index, marked });
+  const accepted = await mark(0, true);
+  assert.equal(accepted.accepted, true);
+  assert.deepEqual(accepted.selected, [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ]);
+  assert.deepEqual(await mark(0, true), accepted);
+  await sync(second, roomId);
+  assert.equal(observed.marks.length, 1);
+  assert.equal((await mark(0, false)).selected[0], false);
+  assert.equal((await mark(1, true, "stale")).accepted, false);
+  await mark(0, true);
+  await mark(1, true);
+  await mark(2, true);
+  const afterFinal = await mark(4, true);
+  assert.equal(afterFinal.accepted, false);
+  assert.equal(afterFinal.selected[4], false);
+  assert.equal((await mark(2, true)).accepted, true);
+  await sync(second, roomId);
+  assert.equal(observed.marks.length, 5);
+  assert.equal(observed.summaries.length, 1);
+});
+
 test("names are unique within a room and released when a player leaves", async (t) => {
   const connect = await startServer(t);
   const first = await connect();
@@ -497,6 +548,7 @@ test("malformed socket requests are rejected without crashing or mutating a game
     "join-room",
     "leave-room",
     "mark",
+    "set-mark",
     "round-restart",
   ]) {
     for (const payload of [null, false, 42, "private-payload", [], {}]) {
@@ -519,6 +571,11 @@ test("malformed socket requests are rejected without crashing or mutating a game
   malformed.push(
     { event: "watch-room", args: [{ roomId }] },
     { event: "watch-room", args: [{ roomId }, "not-an-ack"] },
+    { event: "set-mark", args: [{ ...member, index: 0, marked: true }] },
+    {
+      event: "set-mark",
+      args: [{ ...member, index: 0, marked: true }, "not-an-ack"],
+    },
     { event: "unwatch-room", args: [null] },
     { event: "unwatch-room", args: [{}] },
     { event: "unknown-private-event", args: ["private-payload"] },
@@ -550,12 +607,25 @@ test("malformed socket requests are rejected without crashing or mutating a game
   }
   for (const index of [-1, 9, 25, 1.5, null, "0", {}, Number.NaN]) {
     malformed.push({ event: "mark", args: [{ ...member, index }] });
+    malformed.push({
+      event: "set-mark",
+      args: [{ ...member, index, marked: true }, () => {}],
+    });
   }
-  for (const event of ["mark", "round-restart"]) {
+  for (const marked of [undefined, null, "true", 1, {}]) {
+    malformed.push({
+      event: "set-mark",
+      args: [{ ...member, index: 0, marked }, () => {}],
+    });
+  }
+  for (const event of ["mark", "set-mark", "round-restart"]) {
     for (const roundId of [undefined, null, "", [], 123, "x".repeat(81)]) {
       malformed.push({
         event,
-        args: [{ ...member, index: 0, roundId }],
+        args: [
+          { ...member, index: 0, roundId, marked: true },
+          ...(event === "set-mark" ? [() => {}] : []),
+        ],
       });
     }
   }
@@ -593,7 +663,7 @@ test("malformed socket requests are rejected without crashing or mutating a game
   for (const line of connect.warnings.join("").trim().split(/\r?\n/)) {
     assert.match(
       line,
-      /^Rejected socket event: (watch-room|unwatch-room|join-room|leave-room|mark|round-restart|unknown-event)$/,
+      /^Rejected socket event: (watch-room|unwatch-room|join-room|leave-room|mark|set-mark|round-restart|unknown-event)$/,
     );
   }
 });

@@ -66,17 +66,21 @@ export function useGameSession(
   }, []);
   const roundFinished = useRef(false);
 
-  const reset = useCallback(() => {
+  const finishJoin = useCallback(() => {
     clearJoinTimer();
-    activeBoard.current = null;
     pendingJoin.current = null;
-    roundFinished.current = false;
     setJoining(false);
+  }, [clearJoinTimer]);
+
+  const reset = useCallback(() => {
+    finishJoin();
+    activeBoard.current = null;
+    roundFinished.current = false;
     setBoard(null);
     setSummary(null);
     setPlayers([]);
     setReadiness({ ready: [], members: [] });
-  }, [clearJoinTimer]);
+  }, [finishJoin]);
 
   useEffect(() => {
     const onDisconnect = () => {
@@ -84,9 +88,7 @@ export function useGameSession(
       toast.error(UI.disconnected);
     };
     const onConnectError = () => {
-      clearJoinTimer();
-      pendingJoin.current = null;
-      setJoining(false);
+      finishJoin();
       toast.error(UI.connectionError, { id: "connection-error" });
     };
     const onJoinAccepted = (assignment: BoardAssignment) => {
@@ -102,8 +104,7 @@ export function useGameSession(
         socket.emit("leave-room", { roomId: assignment.roomId });
         return;
       }
-      setJoining(false);
-      clearJoinTimer();
+      finishJoin();
       if (!isValidBoardAssignment(assignment)) {
         socket.emit("leave-room", { roomId: assignment.roomId });
         reset();
@@ -114,7 +115,6 @@ export function useGameSession(
       if (request && assignment.size !== request.size) {
         toast(UI.sizeAdjusted(assignment.size), { icon: ICONS.bell });
       }
-      pendingJoin.current = null;
       activeBoard.current = assignment;
       roundFinished.current = false;
       setBoard(assignment);
@@ -130,9 +130,7 @@ export function useGameSession(
     }) => {
       if (joinRequestId && joinRequestId !== pendingJoin.current?.joinRequestId)
         return;
-      clearJoinTimer();
-      pendingJoin.current = null;
-      setJoining(false);
+      finishJoin();
       toast.error(
         reason === "name-taken"
           ? UI.nameTaken
@@ -154,9 +152,7 @@ export function useGameSession(
           joinRequestId !== pendingJoin.current?.joinRequestId
         )
           return;
-        clearJoinTimer();
-        pendingJoin.current = null;
-        setJoining(false);
+        finishJoin();
       }
       toast.error(UI.requestRejected, { id: "request-rejected" });
     };
@@ -238,7 +234,7 @@ export function useGameSession(
       socket.off("user-left", onUserLeft);
       window.removeEventListener("beforeunload", leaveOnUnload);
     };
-  }, [onSizeAssigned, reset, signal, clearJoinTimer]);
+  }, [onSizeAssigned, reset, signal, finishJoin]);
 
   useEffect(
     () => () => {
@@ -268,9 +264,7 @@ export function useGameSession(
     joinTimer.current = setTimeout(() => {
       if (pendingJoin.current?.joinRequestId !== normalized.joinRequestId)
         return;
-      pendingJoin.current = null;
-      joinTimer.current = null;
-      setJoining(false);
+      finishJoin();
       socket.emit("leave-room", { roomId: normalized.roomId });
       toast.error(UI.joinTimeout);
     }, 8000);

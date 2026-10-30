@@ -17,7 +17,6 @@ export const UI = {
   namePlaceholder: "Imię lub pseudonim",
   roomLabel: "Nazwa pokoju",
   roomPlaceholder: "np. wigilia-u-babci",
-  defaultRoom: "wigilia",
   sizeLabel: "Rozmiar planszy",
   enterRoom: "Wpisz nazwę pokoju, aby sprawdzić jego ustawienia.",
   awaitingConnection: "Oczekiwanie na połączenie z serwerem.",
@@ -57,7 +56,11 @@ export const UI = {
   boardLabel: "Twoja plansza bingo",
   boardTitle: "Twoja świąteczna plansza",
   boardIntro: "Wypatruj haseł i zbieraj wspomnienia.",
-  winBanner: "🎉 BINGO! Ta świąteczna runda należy do Ciebie!",
+  winBanner: "BINGO — oczekiwanie na wynik serwera…",
+  markTimeout:
+    "Serwer nie potwierdził ruchu. Ponów potwierdzenie lub wyjdź z pokoju.",
+  retryMark: "Ponów potwierdzenie ruchu",
+  markRejected: "Serwer odrzucił ruch. Przywrócono potwierdzony stan planszy.",
   boardHint: "✨ Pełny rząd, kolumna lub przekątna = BINGO!",
   lookupError:
     "Nie udało się sprawdzić pokoju. Możesz nadal utworzyć pokój lub dołączyć.",

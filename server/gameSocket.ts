@@ -5,7 +5,9 @@ import { computeTextsVersion } from "../src/shared/textsVersion";
 import type { RoomInfo, RoundSummary } from "../src/types/bingo";
 import type {
   ClientToServerEvents,
+  MarkResult,
   ServerToClientEvents,
+  SetMarkRequest,
 } from "../src/types/socket";
 import { checkBingo } from "../src/utils/checkBingo";
 import { createBoard } from "./board";
@@ -16,6 +18,10 @@ import {
 } from "./socketValidation";
 
 const SERVER_TEXTS_VERSION = computeTextsVersion(texts);
+
+function normalizePlayerName(name: string) {
+  return name.normalize("NFKC").toLocaleLowerCase("pl-PL");
+}
 
 interface RoomState {
   size: 3 | 4 | 5;
@@ -117,6 +123,18 @@ export function registerGameSockets(
   io.on("connection", (socket) => {
     console.log("User connected", socket.id);
 
+    function rejectJoin(
+      reason: string,
+      joinRequestId?: string,
+      serverTextsVersion?: string,
+    ) {
+      socket.emit("join-rejected", {
+        reason,
+        ...(joinRequestId === undefined ? {} : { joinRequestId }),
+        ...(serverTextsVersion === undefined ? {} : { serverTextsVersion }),
+      });
+    }
+
     socket.use((packet, next) => {
       const [receivedEvent, ...args] = packet;
       const event =
@@ -168,41 +186,31 @@ export function registerGameSockets(
             client: textsVersion ?? "missing",
             server: SERVER_TEXTS_VERSION,
           });
-          io.to(socket.id).emit("join-rejected", {
-            reason: "texts-version-mismatch",
-            serverTextsVersion: SERVER_TEXTS_VERSION,
-            ...(joinRequestId === undefined ? {} : { joinRequestId }),
-          });
+          rejectJoin(
+            "texts-version-mismatch",
+            joinRequestId,
+            SERVER_TEXTS_VERSION,
+          );
           return;
         }
 
         const requestedSize = size;
         const roomSize = rooms.get(roomId)?.size ?? requestedSize;
         if (new Set(texts).size < roomSize * roomSize) {
-          io.to(socket.id).emit("join-rejected", {
-            reason: "not-enough-texts",
-            ...(joinRequestId === undefined ? {} : { joinRequestId }),
-          });
+          rejectJoin("not-enough-texts", joinRequestId);
           return;
         }
 
         const userName = user ?? socket.id;
-        const normalizedName = userName
-          .normalize("NFKC")
-          .toLocaleLowerCase("pl-PL");
+        const normalizedName = normalizePlayerName(userName);
         const nameTaken = Object.entries(
           rooms.get(roomId)?.usernames ?? {},
         ).some(
           ([id, name]) =>
-            id !== socket.id &&
-            name.normalize("NFKC").toLocaleLowerCase("pl-PL") ===
-              normalizedName,
+            id !== socket.id && normalizePlayerName(name) === normalizedName,
         );
         if (nameTaken) {
-          socket.emit("join-rejected", {
-            reason: "name-taken",
-            ...(joinRequestId === undefined ? {} : { joinRequestId }),
-          });
+          rejectJoin("name-taken", joinRequestId);
           return;
         }
 
@@ -249,58 +257,81 @@ export function registerGameSockets(
       removeRoomPlayer(socket.id, roomId);
     });
 
-    socket.on(
-      "mark",
-      ({
+    function applyMark({
+      roomId,
+      index,
+      roundId,
+      marked,
+    }: {
+      roomId: string;
+      index: number;
+      roundId: string;
+      marked?: boolean;
+    }): boolean {
+      const room = rooms.get(roomId);
+      if (!room || roundId !== room.roundId) return false;
+
+      const board = room.marked[socket.id];
+      if (!board) return false;
+      if (!Number.isInteger(index) || index < 0 || index >= board.length)
+        return false;
+      if (marked !== undefined && board[index] === marked) return true;
+      if (room.summary) return false;
+
+      board[index] = marked ?? !board[index];
+
+      const text = room.boards[socket.id][index];
+
+      socket.to(roomId).emit("mark", {
         roomId,
-        index,
-        roundId,
-      }: {
-        roomId: string;
-        index: number;
-        roundId: string;
-      }) => {
-        const room = rooms.get(roomId);
-        if (!room || room.summary || roundId !== room.roundId) return;
+        roundId: room.roundId,
+        user: room.usernames[socket.id] ?? socket.id,
+        text,
+        marked: board[index],
+      });
 
-        const board = room.marked[socket.id];
-        if (!board) return;
-        if (!Number.isInteger(index) || index < 0 || index >= board.length)
-          return;
-
-        board[index] = !board[index];
-
-        const text = room.boards[socket.id][index];
-
-        socket.to(roomId).emit("mark", {
+      if (checkBingo(board, room.size)) {
+        room.summary = {
           roomId,
           roundId: room.roundId,
-          user: room.usernames[socket.id] ?? socket.id,
-          text,
-          marked: board[index],
-        });
+          size: room.size,
+          winner: {
+            id: socket.id,
+            user: room.usernames[socket.id],
+          },
+          players: [
+            socket.id,
+            ...Object.keys(room.usernames).filter((id) => id !== socket.id),
+          ].map((id) => ({
+            id,
+            user: room.usernames[id],
+            markedCount: room.marked[id].filter(Boolean).length,
+          })),
+        };
+        io.to(roomId).emit("round-ended", room.summary);
+        updateReadiness(roomId, room);
+      }
+      return true;
+    }
 
-        if (checkBingo(board, room.size)) {
-          room.summary = {
-            roomId,
-            roundId: room.roundId,
-            size: room.size,
-            winner: {
-              id: socket.id,
-              user: room.usernames[socket.id],
-            },
-            players: [
-              socket.id,
-              ...Object.keys(room.usernames).filter((id) => id !== socket.id),
-            ].map((id) => ({
-              id,
-              user: room.usernames[id],
-              markedCount: room.marked[id].filter(Boolean).length,
-            })),
-          };
-          io.to(roomId).emit("round-ended", room.summary);
-          updateReadiness(roomId, room);
-        }
+    // Keep legacy toggle clients working while the frontend is being deployed.
+    socket.on("mark", (request) => {
+      applyMark(request);
+    });
+    socket.on(
+      "set-mark",
+      (request: SetMarkRequest, reply: (result: MarkResult) => void) => {
+        const accepted = applyMark(request);
+        const room = rooms.get(request.roomId);
+        reply({
+          roomId: request.roomId,
+          roundId: request.roundId,
+          accepted,
+          selected:
+            room?.roundId === request.roundId
+              ? [...(room.marked[socket.id] ?? [])]
+              : [],
+        });
       },
     );
 
