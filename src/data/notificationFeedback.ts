@@ -24,6 +24,8 @@ export const NOTIFICATION_UI = {
   vibrationOff: "Włącz wibracje",
   test: "Przetestuj sygnał",
   hint: "Sygnały dotyczą ruchów innych graczy i BINGO. Działają tylko w aktywnej stronie, nie jako push.",
+  vibrationHint:
+    "Brak wibracji na Androidzie? Włącz wibracje przy dotyku (haptykę), wyłącz oszczędzanie baterii i tryb „Nie przeszkadzać”, a następnie przetestuj sygnał. Ustawienia zależą od telefonu.",
   soundUnsupported: "Ta przeglądarka nie obsługuje dźwięku Web Audio.",
   vibrationUnsupported:
     "Ta przeglądarka nie obsługuje wibracji strony (np. Safari na iPhonie).",

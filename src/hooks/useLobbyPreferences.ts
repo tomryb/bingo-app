@@ -8,9 +8,9 @@ export function useLobbyPreferences() {
   const [stored] = useState(() => {
     try {
       return {
-        size: localStorage.getItem("bingo:size"),
-        roomId: localStorage.getItem("bingo:roomId"),
-        userName: localStorage.getItem("bingo:userName"),
+        size: sessionStorage.getItem("bingo:size"),
+        roomId: sessionStorage.getItem("bingo:roomId"),
+        userName: sessionStorage.getItem("bingo:userName"),
         failed: false,
       };
     } catch (error) {
@@ -25,7 +25,7 @@ export function useLobbyPreferences() {
       ? requested
       : (AVAILABLE_SIZES[AVAILABLE_SIZES.length - 1] ?? 3);
   });
-  const [roomId, setRoomId] = useState(() => stored.roomId ?? UI.defaultRoom);
+  const [roomId, setRoomId] = useState(() => stored.roomId ?? "");
   const [userName, setUserName] = useState(() => stored.userName ?? "");
   const [storageFailed, setStorageFailed] = useState(stored.failed);
 
@@ -35,10 +35,10 @@ export function useLobbyPreferences() {
       return;
     }
     try {
-      localStorage.setItem("bingo:roomId", roomId);
-      localStorage.setItem("bingo:userName", userName);
-      localStorage.setItem("bingo:size", String(size));
-      localStorage.removeItem("bingo:verbForm");
+      sessionStorage.setItem("bingo:roomId", roomId);
+      sessionStorage.setItem("bingo:userName", userName);
+      sessionStorage.setItem("bingo:size", String(size));
+      sessionStorage.removeItem("bingo:verbForm");
     } catch (error) {
       console.warn("Could not save bingo preferences", error);
       setStorageFailed(true);

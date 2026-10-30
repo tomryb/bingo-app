@@ -1,6 +1,5 @@
 export const UI = {
   title: "Świąteczne Bingo",
-  pageTitle: "🎄 Świąteczne Bingo",
   summaryPageTitle: "Podsumowanie — Świąteczne Bingo",
   tagline: "Małe chwile, wielka radość",
   connected: "Połączeni świątecznie",
@@ -14,11 +13,10 @@ export const UI = {
   joinKicker: "🎅 Miejsce przy stole czeka",
   joinTitle: "Dołącz do zabawy",
   joinIntro: "Jeden pokój, bliscy ludzie, różne plansze.",
-  nameLabel: "Twoje imię",
-  namePlaceholder: "np. Zosia",
+  nameLabel: "Nazwa gracza",
+  namePlaceholder: "Imię lub pseudonim",
   roomLabel: "Nazwa pokoju",
   roomPlaceholder: "np. wigilia-u-babci",
-  defaultRoom: "wigilia",
   sizeLabel: "Rozmiar planszy",
   enterRoom: "Wpisz nazwę pokoju, aby sprawdzić jego ustawienia.",
   awaitingConnection: "Oczekiwanie na połączenie z serwerem.",
@@ -58,7 +56,11 @@ export const UI = {
   boardLabel: "Twoja plansza bingo",
   boardTitle: "Twoja świąteczna plansza",
   boardIntro: "Wypatruj haseł i zbieraj wspomnienia.",
-  winBanner: "🎉 BINGO! Ta świąteczna runda należy do Ciebie!",
+  winBanner: "BINGO — oczekiwanie na wynik serwera…",
+  markTimeout:
+    "Serwer nie potwierdził ruchu. Ponów potwierdzenie lub wyjdź z pokoju.",
+  retryMark: "Ponów potwierdzenie ruchu",
+  markRejected: "Serwer odrzucił ruch. Przywrócono potwierdzony stan planszy.",
   boardHint: "✨ Pełny rząd, kolumna lub przekątna = BINGO!",
   lookupError:
     "Nie udało się sprawdzić pokoju. Możesz nadal utworzyć pokój lub dołączyć.",
@@ -70,7 +72,7 @@ export const UI = {
   joinError: "Nie udało się dołączyć. Odśwież stronę i sprawdź wersję serwera.",
   joinTimeout: "Serwer nie potwierdził dołączenia. Spróbuj ponownie.",
   nameTaken:
-    "To imię jest już zajęte w tym pokoju. Dodaj liczbę lub zmień imię, np. Tomasz2.",
+    "Ta nazwa gracza jest już zajęta w tym pokoju. Wpisz inne imię lub pseudonim albo dodaj liczbę.",
   requestRejected:
     "Serwer odrzucił nieprawidłowe żądanie. Spróbuj ponownie lub odśwież stronę.",
   storageUnavailable:

@@ -4,7 +4,7 @@ Prosta multiplayerowa gra w **świąteczne (bożonarodzeniowe)** Bingo — gracz
 
 ## Zagraj
 
-Otwórz [Świąteczne Bingo](https://holiday-bingo-app.netlify.app/), wpisz imię i nazwę pokoju. Pozostali gracze otwierają tę samą aplikację i wpisują dokładnie tę samą nazwę pokoju oraz własne, różne imiona. Przycisk „Kopiuj nazwę pokoju” ułatwia przekazanie nazwy rodzinie.
+Otwórz [Świąteczne Bingo](https://holiday-bingo-app.netlify.app/), wpisz nazwę gracza (imię lub pseudonim) i nazwę pokoju. Pozostali gracze otwierają tę samą aplikację i wpisują dokładnie tę samą nazwę pokoju oraz własne, różne nazwy graczy. Przycisk „Kopiuj nazwę pokoju” ułatwia przekazanie nazwy rodzinie.
 
 Pokoje nie mają haseł ani kontroli dostępu — nazwa pokoju nie jest zabezpieczeniem. Odświeżenie strony lub utrata połączenia oznacza ponowne dołączenie i nową planszę. Restart backendu usuwa wszystkie pokoje.
 
@@ -12,6 +12,7 @@ Pokoje nie mają haseł ani kontroli dostępu — nazwa pokoju nie jest zabezpie
 
 - Indywidualne plansze z hasłami autora (`src/data/texts.ts`): obecnie **3x3**, a **4x4** i **5x5** po uzupełnieniu puli przez autora.
 - Zaznaczanie pól oraz informowanie innych graczy o zaznaczeniach
+- Serwer potwierdza pełny stan własnej planszy po ruchu. Podczas oczekiwania kolejne kliknięcia są zablokowane; po timeout można ponowić potwierdzenie bez ponownego przełączania pola ani podwójnego powiadomienia innych.
 - Automatyczne wykrywanie zwycięstwa przez serwer, lokalne podświetlenie zwycięskiej linii i wspólne podsumowanie.
 - Żyjąca lista graczy w pokoju (dołączanie/wyjście aktualizowane na bieżąco)
 - Kopiowanie samej nazwy pokoju w grze i podsumowaniu, aby wysłać ją pozostałym graczom.
@@ -50,6 +51,7 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 
 - Komunikaty są zawsze neutralne: „Ania zaznacza”, „Kuba dołącza do pokoju”, „Alex opuszcza pokój”. Powiadomienia o wejściu i wyjściu są widoczne w grze oraz w podsumowaniu.
 - Serwer wykrywa pierwszą pełną linię po zaznaczeniu kafelka i kończy rundę wszystkim. Dalsze zaznaczenia są blokowane.
+- Lokalna linia BINGO pokazuje jedynie oczekiwanie na wynik. Zwycięzcę ogłasza dopiero serwer, również przy równoczesnym BINGO kilku graczy.
 - W grze adres zawiera nazwę pokoju (`/wigilia`), a w podsumowaniu `/wigilia/podsumowanie`, bez `#`. Znaki specjalne są kodowane w URL. Adres opisuje widok, nie przywraca sesji po odświeżeniu. Reguła SPA w `netlify.toml` kieruje ścieżki bez istniejącego pliku do `index.html`, aby bezpośrednie otwarcie lub odświeżenie nie kończyło się błędem 404.
 - W podsumowaniu zwycięzca jest pierwszy u każdego i widać liczbę zaznaczeń poszczególnych graczy.
 - Podsumowanie wybiera jeden z 10 żartobliwych świątecznych tekstów z nazwami pozostałych graczy (dokładnie takimi, jakie wpisano w grze). Tekst jest wspólny i stały dla danej rundy; gra solo ma osobny komunikat.
@@ -58,7 +60,8 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - Po wyjściu lub wykrytym rozłączeniu serwer usuwa planszę i zaznaczenia tej osoby; powrót oznacza nową planszę z pustymi zaznaczeniami. Nie zmienia to plansz pozostałych osób. Wyniki już zakończonej rundy pozostają w podsumowaniu jako zapis finału. Po wyjściu ostatniej osoby pokój jest usuwany.
 - Lista graczy rozpoznaje osoby po ID połączenia. Imię musi być unikalne wśród obecnych graczy w danym pokoju (bez rozróżniania wielkości liter i skrajnych spacji). Zajęte imię powoduje odmowę dołączenia z sugestią dopisania liczby. Wyjście lub wykryte rozłączenie zwalnia imię; w innym pokoju można używać tego samego imienia.
 - Dołączanie ma limit 8 sekund. Brak potwierdzenia odblokowuje formularz; spóźnione odpowiedzi poprzedniej próby nie zastępują nowej sesji.
-- Niedostępny localStorage nie blokuje gry: preferencje pozostają w pamięci, a interfejs informuje o braku trwałego zapisu.
+- Imię, pokój i rozmiar są zapisywane w `sessionStorage` danej karty, nie w `localStorage`. Odświeżenie zachowuje preferencje; zwykła nowa karta zaczyna z pustym imieniem i pokojem. Przywracanie sesji lub duplikowanie karty przez przeglądarkę może zachować dane. Stare wpisy w `localStorage` nie są odczytywane.
+- Niedostępny `sessionStorage` nie blokuje gry: preferencje pozostają w pamięci React, a interfejs informuje o braku zapisu.
 - Zmiana widoku przenosi fokus na jego nagłówek.
 
 ## Jakość kodu
@@ -72,13 +75,13 @@ Komponenty renderują te dane, a `src/shared/` i `src/utils/` zawierają logikę
 - `npm run verify:fix` — Biome z bezpiecznymi poprawkami, następnie typecheck frontendu i backendu. Niepowodzenie pierwszego kroku zatrzymuje drugi.
 - Wszystkie komendy Biome oraz pre-commit używają `--error-on-warnings`; pozostałe błędy i ostrzeżenia kończą kontrolę niepowodzeniem.
 - `npm run typecheck` — TypeScript: frontend, backend oraz testy `.mts` przez `tsconfig.tests.json`.
-- `npm test` — 27 testów jednostkowych/integracyjnych, kolejno frontend/narzędzia i backend; wymagają zależności obu pakietów. Bez uruchamiania przeglądarki.
-- `npm run test:frontend` — 11 testów jednostkowych w `tests/unit/`: sygnały, walidacja przydziału planszy i kontrola commita wdrażanego na Netlify. Nie są to testy interfejsu w przeglądarce.
-- `npm run test:backend` lub `npm test --prefix server` — 16 testów w `server/tests/`: losowanie, wspólne reguły/dane gry i integracja Socket.IO, w tym zajęte imiona, nieprawidłowe komunikaty, błędne/spóźnione ruchy, równoczesne BINGO i rozłączenia.
+- `npm test` — 32 testy jednostkowe/integracyjne, kolejno frontend/narzędzia i backend; wymagają zależności obu pakietów. Bez uruchamiania przeglądarki.
+- `npm run test:frontend` — 15 testów jednostkowych w `tests/unit/`: sygnały, walidacja przydziału planszy, kontrola commita oraz oczekiwanie na publikację i błędy API hostingów. Nie są to testy interfejsu w przeglądarce.
+- `npm run test:backend` lub `npm test --prefix server` — 17 testów w `server/tests/`: losowanie, wspólne reguły/dane gry i integracja Socket.IO, w tym potwierdzanie i ponawianie ruchów, zajęte nazwy graczy, nieprawidłowe komunikaty, błędne/spóźnione ruchy, równoczesne BINGO i rozłączenia.
 - `npm run test:e2e:install` — pobranie Chromium, Firefox i WebKit do Playwright (ponów po aktualizacji Playwright); na Linux CI może być potrzebne `npx playwright install --with-deps chromium firefox webkit`.
-- `npm run test:e2e` — 10 scenariuszy w 5 projektach (50 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, adresy bez `#`, fokus, localStorage, blokowanie zajętych imion, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
+- `npm run test:e2e` — 13 scenariuszy w 5 projektach (65 wykonań): Chromium, Firefox, WebKit oraz emulowane Pixel 7 i iPhone 13. Gra/rewanż, oczekiwanie na wynik BINGO, utrata potwierdzenia ruchu i retry, adresy bez `#`, fokus, sessionStorage (odświeżenie, nowa karta i błędy zapisu/odczytu), blokowanie zajętych nazw, kopiowanie nazwy pokoju i błąd schowka, odrzucenie/timeout dołączania, utrata połączenia i RWD z powiększonym tekstem.
 - `npm run test:all` — testy jednostkowe/integracyjne oraz E2E.
-- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC, CSS, Markdown i YAML dodanych do staging area, następnie pełny typecheck aplikacji i testów. Ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
+- Pre-commit hook (Husky + lint-staged) uruchamia `biome check --write` dla plików JS/TS/JSX/TSX (także MTS/CTS), JSON/JSONC, CSS, Markdown, YAML i HTML dodanych do staging area, następnie pełny typecheck aplikacji i testów. Poprawki formatowania i bezpieczne poprawki lintowania są automatycznie dodawane do tego samego commita; nie trzeba wykonywać ponownego `git add` ani cofać commita. Wynik Biome jest widoczny także przy sukcesie. Pozostałe ostrzeżenia Biome lub błędy którejkolwiek kontroli blokują commit.
 - Biome ma konfigurację w `biome.json` i pomija pliki ignorowane przez Git oraz lockfile. Markdown nie jest objęty skonfigurowanym formatowaniem.
 
 Playwright sam uruchamia i zatrzymuje backend oraz Vite na testowych portach **3199** i **5189**.
@@ -93,6 +96,8 @@ Testy RWD sprawdzają lobby, grę i podsumowanie przy szerokościach 320/390/768
 Style używają `rem` dla typografii i wymiarów zależnych od tekstu, `em` w breakpointach oraz `%`/`fr` dla płynnych układów. Cienkie obramowania i dekoracyjne efekty pozostają w px.
 Reset przeglądarkowy i tokeny kolorów są w `src/styles/base.css`; nie wymagają Tailwinda ani dodatkowej konfiguracji PostCSS.
 Workflow `.github/workflows/verify.yml` uruchamia kontrole, wszystkie testy i build dla PR-ów do `master` oraz pushów na `master`. Push na gałąź roboczą bez PR nie uruchamia Verify; kolejne zmiany w otwartym PR uruchamiają kontrolę PR, bez dodatkowego przebiegu push.
+
+`.gitattributes` utrzymuje pliki tekstowe z końcami linii LF także na Windows, zgodnie z Biome (wyjątek: skrypty `.bat` i `.cmd` używają CRLF). Nie wyłączaj kontroli formatowania z powodu lokalnej konwersji końców linii.
 
 ## Praca z repozytorium
 
@@ -204,17 +209,24 @@ Workflow `.github/workflows/deploy.yml` uruchamia buildy obu hostingów wyłącz
 
 Konfiguracja jednorazowa:
 
-1. W Renderze skopiuj **Settings → Deploy Hook** i wyłącz **Auto-Deploy**. Nie zmieniaj komend build/start.
+1. W Renderze wyłącz **Auto-Deploy**. Nie zmieniaj komend build/start. Utwórz klucz API w ustawieniach konta; identyfikator usługi `srv-…` znajdziesz w jej panelu/adresie strony.
 2. W Netlify utwórz **Build hook** dla gałęzi `master` w **Project configuration → Developer settings → Continuous deployment → Build hooks**.
 3. W GitHub utwórz **Settings → Environments → production** i dodaj environment secrets:
-   - `RENDER_DEPLOY_HOOK_URL` — pełny URL hooka Render.
+   - `RENDER_API_KEY` — klucz API Render z dostępem do usługi.
+   - `RENDER_SERVICE_ID` — identyfikator backendu `srv-…`.
+   - `NETLIFY_AUTH_TOKEN` — token dostępu Netlify z prawem odczytu projektu i wdrożeń (ustawienia użytkownika → Applications → Personal access tokens).
+   - `NETLIFY_SITE_ID` — Project ID projektu frontendu z ustawień Netlify.
    - `NETLIFY_BUILD_HOOK_URL` — pełny URL hooka Netlify dla `master`.
 4. Pozostaw produkcyjną gałąź Netlify jako `master` i dotychczasowe cztery zmienne środowiskowe. Nie ustawiaj ręcznie `INCOMING_HOOK_BODY` ani `COMMIT_REF`.
 5. Plik workflow musi znajdować się na domyślnej gałęzi `master` (wymóg `workflow_run`). Zmiany workflow wprowadzaj przez PR do `master`.
 
 `netlify.toml` pomija natywne produkcyjne buildy po pushu przez `ignore`; build hook omija tę regułę. W panelu oczekiwany jest wpis **Canceled** po pushu, a później osobny build uruchomiony hookiem po Verify — anulowany wpis nie oznacza drugiego pełnego builda ani błędu publikacji. **Nie używaj „Stop builds”** — zablokowałoby też hooki. Produkcyjny build wymaga commita przekazanego przez workflow i sprawdza jego zgodność z `COMMIT_REF`; zwykły ręczny deploy bez payloadu nie zostanie opublikowany. Jeśli w trakcie kolejki pojawi się nowszy commit, niezgodny build zakończy się błędem zamiast opublikować niesprawdzony kod.
 
-Render dostaje dokładny SHA przez `ref`. Zielony **Deploy** oznacza przyjęcie żądań buildów, nie zakończenie publikacji — końcowy status i commit sprawdź w Renderze i Netlify. Hooki nie zapewniają atomowego wdrożenia obu usług; jeśli jedna zawiedzie, sprawdź logi przed ponowieniem. URL-e hooków są sekretami: nie dodawaj ich do `.env.example`, repo ani wiadomości.
+Render dostaje dokładny SHA przez API (`commitId`). Skrypt `scripts/deploy.mts` czeka na **Live**, dopiero potem uruchamia hook Netlify z unikalnym tytułem i oczekuje na **Ready** oraz potwierdzenie publikacji jako produkcja. Oba commity muszą odpowiadać Verify; zmiana aktywnego deployu Rendera podczas budowania frontendu również powoduje błąd. Oczekiwanie obejmuje maksymalnie 120 kontroli co 10 sekund na usługę, żądania mają timeout 30 sekund, a cały job 50 minut. `concurrency` obejmuje także oczekiwanie na hostingi. Błąd API, publikacji, niezgodny commit lub timeout kończy workflow na czerwono.
+
+**Migracja z poprzedniego workflow:** przed scaleniem tych zmian dodaj cztery nowe sekrety API/identyfikatorów wymienione powyżej. Dotychczasowy `NETLIFY_BUILD_HOOK_URL` pozostaje. `RENDER_DEPLOY_HOOK_URL` nie jest już używany i można go usunąć po sprawdzeniu nowego procesu. Nie dodawaj wartości tokenów ani hooków do repo. Tokeny przyznaj tylko z potrzebnymi uprawnieniami i ustaw termin ważności, jeśli dostawca to umożliwia.
+
+Wdrożenie obu usług nie jest atomowe: jeśli frontend zawiedzie po aktualizacji backendu, backend pozostaje w nowej wersji. Nie ma automatycznego rollbacku ani produkcyjnego smoke testu gry. Przy błędzie sprawdź zgodność wersji i logi przed ponowieniem. Podczas zmiany protokołu publikuj poza rozgrywką; backend zachowuje stary event `mark` dla klientów poprzedniej wersji, a nowy frontend używa potwierdzanego `set-mark`.
 
 Netlify może niezależnie budować **Deploy Preview** dla PR, jeszcze przed zakończeniem Verify. Preview nie zastępuje produkcji, ale jeśli korzysta z produkcyjnego `VITE_SERVER_URL`, łączy się z tym samym backendem i nie jest odizolowanym środowiskiem gry.
 

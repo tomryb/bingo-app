@@ -42,6 +42,7 @@ export function validateSocketRequest(
     event !== "join-room" &&
     event !== "leave-room" &&
     event !== "mark" &&
+    event !== "set-mark" &&
     event !== "round-restart"
   ) {
     return { valid: false, reason: "unknown-event" };
@@ -50,10 +51,11 @@ export function validateSocketRequest(
   if (!isRecord(request)) return invalid;
   const roomId = normalizedString(request.roomId, MAX_ROOM_NAME_LENGTH);
   if (!roomId) return invalid;
-  if (event === "watch-room" && typeof reply !== "function") {
+  const needsReply = event === "watch-room" || event === "set-mark";
+  if (needsReply && typeof reply !== "function") {
     return { valid: false, reason: "missing-ack" };
   }
-  if (args.length !== (event === "watch-room" ? 2 : 1)) return invalid;
+  if (args.length !== (needsReply ? 2 : 1)) return invalid;
   if (event === "watch-room" || event === "leave-room") {
     return { valid: true, payload: { roomId } };
   }
@@ -88,6 +90,13 @@ export function validateSocketRequest(
   ) {
     return { valid: false, reason: "invalid-index" };
   }
+  if (event === "set-mark") {
+    if (typeof request.marked !== "boolean") return invalid;
+    return {
+      valid: true,
+      payload: { roomId, roundId, index, marked: request.marked },
+    };
+  }
   return { valid: true, payload: { roomId, roundId, index } };
 }
 
@@ -98,6 +107,7 @@ export function rejectedEventLabel(event: string) {
     case "join-room":
     case "leave-room":
     case "mark":
+    case "set-mark":
     case "round-restart":
       return event;
     default:

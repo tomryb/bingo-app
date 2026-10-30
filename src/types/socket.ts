@@ -21,6 +21,20 @@ export interface MarkNotification {
   marked: boolean;
 }
 
+export interface SetMarkRequest {
+  roomId: string;
+  roundId: string;
+  index: number;
+  marked: boolean;
+}
+
+export interface MarkResult {
+  roomId: string;
+  roundId: string;
+  accepted: boolean;
+  selected: boolean[];
+}
+
 export interface ServerToClientEvents {
   "request-rejected": (error: {
     event: string;
@@ -66,5 +80,9 @@ export interface ClientToServerEvents {
   }) => void;
   "leave-room": (request: { roomId: string }) => void;
   mark: (request: { roomId: string; index: number; roundId: string }) => void;
+  "set-mark": (
+    request: SetMarkRequest,
+    reply: (result: MarkResult) => void,
+  ) => void;
   "round-restart": (request: { roomId: string; roundId: string }) => void;
 }

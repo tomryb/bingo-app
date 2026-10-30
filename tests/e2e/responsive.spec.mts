@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page, test } from "@playwright/test";
+import { NOTIFICATION_UI } from "../../src/data/notificationFeedback.ts";
 import { UI } from "../../src/data/uiTexts.ts";
 import {
   MAX_PLAYER_NAME_LENGTH,
@@ -33,12 +34,28 @@ async function expectLayoutFits(page: Page) {
     });
   expect(overflow).toEqual([]);
 }
-
 for (const fontSize of [16, 32]) {
   test(`lobby, board and summary fit narrow screens with ${fontSize}px root text`, async ({
     page,
   }) => {
     await page.goto("/");
+    await expect(page.getByLabel(UI.roomLabel, { exact: true })).toHaveValue(
+      "",
+    );
+    await expect(
+      page.getByLabel(UI.roomLabel, { exact: true }),
+    ).toHaveAttribute("placeholder", UI.roomPlaceholder);
+    if (
+      await page
+        .getByRole("button", { name: NOTIFICATION_UI.vibrationOff })
+        .isEnabled()
+    ) {
+      await expect(page.getByText(NOTIFICATION_UI.vibrationHint)).toBeVisible();
+    }
+    await expect(page.locator(".page-footer")).toHaveCSS(
+      "padding-bottom",
+      "80px",
+    );
     await expect(page.getByLabel(UI.nameLabel)).toHaveAttribute(
       "maxlength",
       String(MAX_PLAYER_NAME_LENGTH),

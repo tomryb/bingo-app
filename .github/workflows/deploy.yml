@@ -21,6 +21,7 @@ jobs:
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-24.04
+    timeout-minutes: 50
     environment: production
     steps:
       - name: Check that the verified commit is still master
@@ -38,23 +39,23 @@ jobs:
             echo "Skipping superseded commit $VERIFIED_SHA"
             echo "current=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Trigger verified production builds
+      - uses: actions/checkout@v6
+        if: steps.revision.outputs.current == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        if: steps.revision.outputs.current == 'true'
+        with:
+          node-version: "24"
+      - name: Deploy and wait for verified production versions
         if: steps.revision.outputs.current == 'true'
         env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
           VERIFIED_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          set -euo pipefail
-          : "${RENDER_DEPLOY_HOOK_URL:?Missing RENDER_DEPLOY_HOOK_URL}"
-          : "${NETLIFY_BUILD_HOOK_URL:?Missing NETLIFY_BUILD_HOOK_URL}"
-          curl --fail --silent --show-error --max-time 60 \
-            --request POST --get \
-            --data-urlencode "ref=$VERIFIED_SHA" \
-            --output /dev/null "$RENDER_DEPLOY_HOOK_URL"
-          curl --fail --silent --show-error --max-time 60 \
-            --request POST \
-            --header "Content-Type: application/json" \
-            --data "{\"commit\":\"$VERIFIED_SHA\"}" \
-            --output /dev/null "$NETLIFY_BUILD_HOOK_URL"
-          echo "Builds requested for $VERIFIED_SHA. Check Render and Netlify for deployment completion."
+          DEPLOY_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/deploy.mts
