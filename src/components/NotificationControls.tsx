@@ -49,6 +49,7 @@ export default function NotificationControls({
         </button>
       </div>
       <p>{NOTIFICATION_UI.hint}</p>
+      {feedback.supportsVibration && <p>{NOTIFICATION_UI.vibrationHint}</p>}
       {!feedback.supportsSound && <p>{NOTIFICATION_UI.soundUnsupported}</p>}
       {!feedback.supportsVibration && (
         <p>{NOTIFICATION_UI.vibrationUnsupported}</p>

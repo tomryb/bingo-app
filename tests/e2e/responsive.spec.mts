@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page, test } from "@playwright/test";
+import { NOTIFICATION_UI } from "../../src/data/notificationFeedback.ts";
 import { UI } from "../../src/data/uiTexts.ts";
 import {
   MAX_PLAYER_NAME_LENGTH,
@@ -39,6 +40,17 @@ for (const fontSize of [16, 32]) {
     page,
   }) => {
     await page.goto("/");
+    if (
+      await page
+        .getByRole("button", { name: NOTIFICATION_UI.vibrationOff })
+        .isEnabled()
+    ) {
+      await expect(page.getByText(NOTIFICATION_UI.vibrationHint)).toBeVisible();
+    }
+    await expect(page.locator(".page-footer")).toHaveCSS(
+      "padding-bottom",
+      "80px",
+    );
     await expect(page.getByLabel(UI.nameLabel)).toHaveAttribute(
       "maxlength",
       String(MAX_PLAYER_NAME_LENGTH),
