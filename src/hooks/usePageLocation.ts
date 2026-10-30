@@ -13,8 +13,8 @@ export function usePageLocation(
       null,
       "",
       roomId === undefined
-        ? "#/"
-        : `#/${encodeURIComponent(roomId)}${hasSummary ? "/podsumowanie" : ""}`,
+        ? "/"
+        : `/${encodeURIComponent(roomId)}${hasSummary ? "/podsumowanie" : ""}`,
     );
     document.title = hasSummary ? UI.summaryPageTitle : UI.pageTitle;
     if (previousView.current !== view) {
