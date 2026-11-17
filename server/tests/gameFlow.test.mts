@@ -5,6 +5,7 @@ import { createServer } from "node:net";
 import test, { type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { io, type Socket } from "socket.io-client";
+import texts from "../../src/data/texts.ts";
 import {
   MAX_PLAYER_NAME_LENGTH,
   MAX_ROOM_NAME_LENGTH,
@@ -699,20 +700,31 @@ test("room and user normalization preserves version rejection and valid joins", 
     });
     assert.equal((await sync(client, roomId)).size, null);
   }
-  for (const size of [4, 5]) {
-    const correlation = size === 4 ? {} : { joinRequestId: "insufficient-5" };
-    const rejected = nextEvent(client, "join-rejected");
-    emitRaw(client, "join-room", {
-      roomId: `insufficient-texts-${size}`,
-      user: "Ania",
-      size,
-      textsVersion: TEXTS_VERSION,
-      ...correlation,
-    });
-    assert.deepEqual(await rejected, {
-      reason: "not-enough-texts",
-      ...correlation,
-    });
+  for (const size of [4, 5] as const) {
+    for (const joinRequestId of [undefined, `size-${size}`]) {
+      const sizeRoom = `texts-${size}`;
+      if (new Set(texts).size >= size * size) {
+        const board = await join(client, sizeRoom, "Ania", size, joinRequestId);
+        assert.equal(board.size, size);
+        assert.equal(board.boardTexts.length, size * size);
+        assert.equal(board.joinRequestId, joinRequestId);
+        client.emit("leave-room", { roomId: sizeRoom });
+      } else {
+        const rejected = nextEvent(client, "join-rejected");
+        emitRaw(client, "join-room", {
+          roomId: sizeRoom,
+          user: "Ania",
+          size,
+          textsVersion: TEXTS_VERSION,
+          ...(joinRequestId === undefined ? {} : { joinRequestId }),
+        });
+        assert.deepEqual(await rejected, {
+          reason: "not-enough-texts",
+          ...(joinRequestId === undefined ? {} : { joinRequestId }),
+        });
+      }
+      assert.equal((await sync(client, sizeRoom)).size, null);
+    }
   }
   const state = nextEvent(client, "room-state");
   const board = await join(client, `  ${roomId}  `, "  Ania  ", 3, "join-123");

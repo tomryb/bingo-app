@@ -12,6 +12,9 @@ const texts: string[] = [
   "Już nie ma takich dzieci",
   "Ptaszysko porwie",
   "W naszej rodzinie wszyscy szybko jedzą",
+  "Trzeba pójśc do piwnicy",
+  "Możecie robić co chcecie",
+  "Radek Ty jesteś bardziej podobny do Rybaków z wyglądu bo z charakteru to Tomek bardziej a Tomek to cały Mysiur",
 ];
 
 export default texts;

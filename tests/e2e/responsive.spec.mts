@@ -70,6 +70,7 @@ for (const fontSize of [16, 32]) {
       await page.setViewportSize({ width, height: 900 });
       await expectLayoutFits(page);
     }
+    await page.getByRole("button", { name: "3 × 3" }).click();
     await page.getByLabel(UI.nameLabel).fill("Alex");
     await page
       .getByLabel(UI.roomLabel, { exact: true })
