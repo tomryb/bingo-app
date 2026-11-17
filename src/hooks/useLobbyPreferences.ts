@@ -1,8 +1,23 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { UI } from "../data/uiTexts";
+import { MAX_ROOM_NAME_LENGTH } from "../shared/limits";
 import type { BoardSize } from "../types/bingo";
 import { AVAILABLE_SIZES } from "../utils/boardAssignment";
+
+function roomFromPath(pathname: string): string | null {
+  const match = /^\/([^/]+)(?:\/podsumowanie)?\/?$/.exec(pathname);
+  if (!match) return null;
+
+  try {
+    const roomId = decodeURIComponent(match[1]);
+    if (roomId.trim() && roomId.length <= MAX_ROOM_NAME_LENGTH) return roomId;
+    console.warn("Invalid room name in URL");
+  } catch (error) {
+    console.warn("Could not decode room name from URL", error);
+  }
+  return null;
+}
 
 export function useLobbyPreferences() {
   const [stored] = useState(() => {
@@ -25,7 +40,9 @@ export function useLobbyPreferences() {
       ? requested
       : (AVAILABLE_SIZES[AVAILABLE_SIZES.length - 1] ?? 3);
   });
-  const [roomId, setRoomId] = useState(() => stored.roomId ?? "");
+  const [roomId, setRoomId] = useState(
+    () => roomFromPath(window.location.pathname) ?? stored.roomId ?? "",
+  );
   const [userName, setUserName] = useState(() => stored.userName ?? "");
   const [storageFailed, setStorageFailed] = useState(stored.failed);
 

@@ -62,7 +62,13 @@ test("two players create and join a room, finish a round and replay together", a
     );
     await expect(first.getByText(UI.roomCopied, { exact: true })).toBeVisible();
 
-    await enterLobby(second, "Kuba", roomId);
+    await second.goto("/");
+    await second.getByLabel(UI.nameLabel).fill("Kuba");
+    await second.getByLabel(UI.roomLabel, { exact: true }).fill("inny pokój");
+    await second.goto(roomPath);
+    await expect(second.getByLabel(UI.roomLabel, { exact: true })).toHaveValue(
+      roomId,
+    );
     await expect(
       second.getByRole("status").filter({ hasText: UI.existingRoom(3) }),
     ).toBeVisible();
@@ -163,6 +169,9 @@ test("two players create and join a room, finish a round and replay together", a
       const response = await first.goto(path);
       expect(response?.status()).toBe(200);
       await expect(first.getByLabel(UI.nameLabel)).toBeVisible();
+      await expect(first.getByLabel(UI.roomLabel, { exact: true })).toHaveValue(
+        roomId,
+      );
       await expect(first).toHaveURL(
         (url) => url.pathname === "/" && url.hash === "",
       );
@@ -170,5 +179,40 @@ test("two players create and join a room, finish a round and replay together", a
     expect(errors).toEqual([]);
   } finally {
     await secondContext.close();
+  }
+});
+
+test("room links prefill the lobby without restoring a game", async ({
+  page,
+}) => {
+  const roomId = "Zażółć / #? 100%";
+  const roomPath = `/${encodeURIComponent(roomId)}`;
+  const roomInput = page.getByLabel(UI.roomLabel, { exact: true });
+
+  await page.addInitScript(() => {
+    const path = sessionStorage.getItem("test:initial-path");
+    if (path) {
+      sessionStorage.removeItem("test:initial-path");
+      window.history.replaceState(null, "", path);
+    }
+  });
+  await page.goto(`${roomPath}/podsumowanie`);
+  await expect(roomInput).toHaveValue(roomId);
+  await expect(page.getByLabel(UI.nameLabel)).toHaveValue("");
+  await expect(page).toHaveURL((url) => url.pathname === "/");
+
+  await page.reload();
+  await expect(roomInput).toHaveValue(roomId);
+
+  await roomInput.fill("zapisany pokój");
+  await page.goto("/");
+  await expect(roomInput).toHaveValue("zapisany pokój");
+
+  for (const path of ["/%E0%A4%A", `/${"a".repeat(81)}`, "/pokój/inny"]) {
+    await page.evaluate((value) => {
+      sessionStorage.setItem("test:initial-path", value);
+    }, path);
+    await page.goto("/");
+    await expect(roomInput).toHaveValue("zapisany pokój");
   }
 });
