@@ -30,6 +30,8 @@ export const UI = {
   joinRoom: "Dołącz do pokoju →",
   createRoom: "Utwórz pokój i dołącz →",
   createOrJoin: "Utwórz lub dołącz →",
+  versionMismatch:
+    "Wersje aplikacji i serwera są niezgodne. Odśwież stronę; jeśli problem nie ustąpi, administrator musi wdrożyć zgodne wersje.",
   insufficientTexts: "Potrzeba co najmniej 9 haseł, aby rozpocząć grę.",
   joinNote: "✨ Bez konta, bez pośpiechu. Po prostu razem.",
   instructionsLabel: "Jak grać",

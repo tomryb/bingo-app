@@ -124,9 +124,11 @@ export function useGameSession(
     const onJoinRejected = ({
       reason,
       joinRequestId,
+      serverTextsVersion,
     }: {
       reason: string;
       joinRequestId?: string;
+      serverTextsVersion?: string;
     }) => {
       if (joinRequestId && joinRequestId !== pendingJoin.current?.joinRequestId)
         return;
@@ -136,8 +138,16 @@ export function useGameSession(
           ? UI.nameTaken
           : reason === "not-enough-texts"
             ? UI.notEnoughTexts
-            : UI.joinError,
+            : reason === "texts-version-mismatch"
+              ? UI.versionMismatch
+              : UI.joinError,
       );
+      if (reason === "texts-version-mismatch") {
+        console.warn("Client and server text versions do not match", {
+          client: TEXTS_VERSION,
+          server: serverTextsVersion ?? "unknown",
+        });
+      }
     };
     const onRequestRejected = ({
       event,

@@ -9,13 +9,27 @@ export function useRoomPreview(roomId: string, enabled: boolean) {
   const [failedRoom, setFailedRoom] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const normalizedRoomId = roomId.trim();
+  const [lookupRoomId, setLookupRoomId] = useState(normalizedRoomId);
+
+  useEffect(() => {
+    if (!normalizedRoomId) {
+      setLookupRoomId("");
+      return;
+    }
+
+    const timer = window.setTimeout(
+      () => setLookupRoomId(normalizedRoomId),
+      400,
+    );
+    return () => window.clearTimeout(timer);
+  }, [normalizedRoomId]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: attempt intentionally restarts the subscription when the user retries.
   useEffect(() => {
-    if (!enabled || !normalizedRoomId) return;
+    if (!enabled || !lookupRoomId) return;
     let active = true;
     const onRoomInfo = (next: RoomInfo) => {
-      if (active && next.roomId === normalizedRoomId) {
+      if (active && next.roomId === lookupRoomId) {
         setInfo(next);
         setFailedRoom(null);
       }
@@ -25,11 +39,11 @@ export function useRoomPreview(roomId: string, enabled: boolean) {
       .timeout(5000)
       .emit(
         "watch-room",
-        { roomId: normalizedRoomId },
+        { roomId: lookupRoomId },
         (error: Error | null, next: RoomInfo) => {
           if (!active) return;
           if (error) {
-            setFailedRoom(normalizedRoomId);
+            setFailedRoom(lookupRoomId);
             setInfo(null);
             toast.error(UI.lookupError);
             return;
@@ -42,11 +56,12 @@ export function useRoomPreview(roomId: string, enabled: boolean) {
       socket.off("room-info", onRoomInfo);
       socket.emit("unwatch-room");
     };
-  }, [enabled, normalizedRoomId, attempt]);
+  }, [enabled, lookupRoomId, attempt]);
 
   return {
     info: enabled && info?.roomId === normalizedRoomId ? info : null,
     failed: failedRoom === normalizedRoomId,
+    lookupNow: () => setLookupRoomId(normalizedRoomId),
     retry: () => setAttempt((value) => value + 1),
   };
 }

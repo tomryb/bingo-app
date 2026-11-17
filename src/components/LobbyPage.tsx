@@ -79,6 +79,7 @@ export default function LobbyPage({
             <input
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
+              onBlur={preview.lookupNow}
               placeholder={UI.roomPlaceholder}
               required
               maxLength={MAX_ROOM_NAME_LENGTH}

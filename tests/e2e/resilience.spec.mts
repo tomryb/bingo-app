@@ -249,7 +249,7 @@ test("occupied names are rejected and a renamed player can join", async ({
   }
 });
 
-test("rejected joining unlocks the form and displays an error", async ({
+test("a version mismatch unlocks the form and displays an error", async ({
   page,
 }) => {
   await page.goto("/");
@@ -272,7 +272,9 @@ test("rejected joining unlocks the form and displays an error", async ({
     });
   });
   await page.locator("form button[type=submit]").click();
-  await expect(page.getByText(UI.joinError, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(UI.versionMismatch, { exact: true }),
+  ).toBeVisible();
   await expect(page.locator("form button[type=submit]")).toBeEnabled();
 });
 
