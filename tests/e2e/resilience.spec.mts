@@ -5,6 +5,7 @@ test("a lost mark acknowledgement can be retried without toggling the tile", asy
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "3 × 3" }).click();
   await page.getByLabel(UI.nameLabel).fill("Alex");
   await page
     .getByLabel(UI.roomLabel, { exact: true })
@@ -90,6 +91,7 @@ test("a local bingo waits for the server instead of claiming victory", async ({
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "3 × 3" }).click();
   await page.getByLabel(UI.nameLabel).fill("Alex");
   await page
     .getByLabel(UI.roomLabel, { exact: true })
@@ -278,6 +280,7 @@ test("a missing join response times out; a late response cannot replace a retry"
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "3 × 3" }).click();
   await page.getByLabel(UI.nameLabel).fill("Alex");
   await page
     .getByLabel(UI.roomLabel, { exact: true })

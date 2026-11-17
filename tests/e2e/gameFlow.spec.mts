@@ -42,6 +42,7 @@ test("two players create and join a room, finish a round and replay together", a
   });
   try {
     await enterLobby(first, "Ania", roomId);
+    await first.getByRole("button", { name: "3 × 3" }).click();
     await expect(first.getByLabel(UI.nameLabel)).toHaveAttribute(
       "placeholder",
       UI.namePlaceholder,
