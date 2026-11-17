@@ -4,10 +4,14 @@ import { UI } from "../data/uiTexts";
 export default function CopyRoomButton({ roomId }: { roomId: string }) {
   async function copyRoom() {
     try {
-      await navigator.clipboard.writeText(roomId);
+      const roomUrl = new URL(
+        `/${encodeURIComponent(roomId)}`,
+        window.location.origin,
+      ).toString();
+      await navigator.clipboard.writeText(roomUrl);
       toast.success(UI.roomCopied);
     } catch (error) {
-      console.warn("Could not copy room name", error);
+      console.warn("Could not copy room address", error);
       toast.error(UI.roomCopyFailed);
     }
   }

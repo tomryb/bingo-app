@@ -38,10 +38,9 @@ export const UI = {
   summaryEyebrow: "Świąteczny finał",
   summaryTitle: "BINGO! Runda zakończona",
   roomPrefix: "Pokój:",
-  copyRoom: "Kopiuj nazwę pokoju",
-  roomCopied: "Nazwa pokoju skopiowana — wyślij ją pozostałym graczom.",
-  roomCopyFailed:
-    "Nie udało się skopiować nazwy pokoju. Zaznacz ją i skopiuj ręcznie.",
+  copyRoom: "Skopiuj adres pokoju",
+  roomCopied: "Adres pokoju skopiowany — wyślij go pozostałym graczom.",
+  roomCopyFailed: "Nie udało się skopiować adresu pokoju. Spróbuj ponownie.",
   selfSuffix: " (Ty)",
   readinessPrefix: "Gotowość do kolejnej rundy:",
   readinessNote: "Nowa runda ruszy, gdy wszyscy obecni będą gotowi.",

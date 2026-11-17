@@ -58,7 +58,7 @@ test("two players create and join a room, finish a round and replay together", a
     await first.getByRole("button", { name: UI.copyRoom }).click();
     await expect(first.locator("html")).toHaveAttribute(
       "data-copied-room",
-      roomId,
+      new URL(roomPath, baseURL).toString(),
     );
     await expect(first.getByText(UI.roomCopied, { exact: true })).toBeVisible();
 
@@ -123,7 +123,7 @@ test("two players create and join a room, finish a round and replay together", a
     await first.getByRole("button", { name: UI.copyRoom }).click();
     await expect(first.locator("html")).toHaveAttribute(
       "data-copied-room",
-      roomId,
+      new URL(roomPath, baseURL).toString(),
     );
     await first.getByRole("button", { name: UI.replay, exact: true }).click();
     await expect(
